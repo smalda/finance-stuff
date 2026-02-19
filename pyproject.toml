@@ -1,0 +1,55 @@
+[project]
+name = "finance-stuff"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "dasmal",email = "dasmal@avito.ru"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # ── Core / data ──
+    "yfinance (>=1.1.0,<2.0.0)",
+    "matplotlib (>=3.10.8,<4.0.0)",
+    "scipy (>=1.17.0,<2.0.0)",
+    "statsmodels (>=0.14.6,<0.15.0)",
+    "polars (>=1.38.0,<2.0.0)",
+    "pyarrow (>=23.0.0,<24.0.0)",
+    "fredapi (>=0.5.0)",
+    "networkx (>=3.0)",
+    "tqdm (>=4.67.3,<5.0.0)",
+    # ── Econometrics (W2-3) ──
+    "arch (>=8.0.0,<9.0.0)",
+    "linearmodels (>=7.0,<8.0)",
+    # ── ML / boosting (W4+) ──
+    "xgboost (>=3.2.0,<4.0.0)",
+    "lightgbm (>=4.6.0,<5.0.0)",
+    "scikit-learn (>=1.8.0,<2.0.0)",
+    "shap (>=0.46.0)",
+    "optuna (>=4.0.0,<5.0.0)",
+    # ── Deep learning (W4, W8, W16-17) ──
+    "torch (>=2.10.0,<3.0.0) ; python_version < \"3.15\"",
+    "torch-geometric (>=2.6.0) ; python_version < \"3.15\"",
+    # ── NLP (W7, W12) ──
+    "transformers (>=4.40.0)",
+    "sentence-transformers (>=3.0.0)",
+    "datasets (>=3.0.0)",
+    # ── Portfolio optimization (W6) ──
+    "cvxpy (>=1.6.0)",
+    # ── Causal inference (W10) ──
+    "dowhy (>=0.11) ; python_version < \"3.14\"",
+    # econml excluded — requires scikit-learn <1.7, incompatible with our 1.8+.
+    # Install separately if needed: pip install econml
+    # ── Regime detection (W14) ──
+    "hmmlearn (>=0.3.0)",
+    # ── Reinforcement learning (W15) ──
+    "gymnasium (>=1.0.0)",
+    "stable-baselines3 (>=2.4.0)",
+    "quantstats (>=0.0.81,<0.0.82)",
+    "playwright (>=1.58.0,<2.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

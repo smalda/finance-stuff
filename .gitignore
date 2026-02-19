@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+
+# Data caches (reproducible via data.py / shared infrastructure)
+course/shared/.data_cache/
+course/week*/code/.cache/
+legacy/old_pipeline_weeks/*/code/.cache/
+
+# Logs from code execution (Step 4B)
+course/week*/code/logs/
+
+# Zip archives (generated artifacts)
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.swp
+*.swo
+*~

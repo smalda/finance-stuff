@@ -1,0 +1,1558 @@
+--- lecture/s1_cross_sectional_setup.py ---
+── DATA QUALITY ──────────────────────────────────
+  Feature matrix shape: (23192, 7)
+  Features: ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z']
+  Unique months: 130
+  Tickers per month: 177–179
+  Date range: 2014-03 to 2024-12
+  Missing values:
+    pb_ratio_z: 6.2%
+    roe_z: 6.2%
+    asset_growth_z: 0.0%
+    earnings_yield_z: 0.0%
+    momentum_z: 0.1%
+    reversal_z: 0.0%
+    volatility_z: 0.0%
+  Forward return months: 129
+  Forward return mean: 0.013278
+  Forward return std:  0.083319
+
+  ⚠ SURVIVORSHIP BIAS: Universe is current S&P 500 constituents
+    projected backward. Stocks that were removed from the index
+    (due to decline, acquisition, bankruptcy) are excluded. This
+    upward-biases mean returns and likely inflates any cross-
+    sectional signal that correlates with survival probability.
+    Production systems require point-in-time membership data.
+──────────────────────────────────────────────────
+══ lecture/s1_cross_sectional_setup ══════════════════════
+  feature_matrix_shape: (23192, 7)
+  n_features: 7
+  n_months: 130
+  tickers_per_month: 177–179
+  forward_return_months: 129
+  max_fwd_date: 2024-11-30
+  excess_return_max_abs_mean: 1.98e-17
+  median_monthly_spearman: 0.0352
+  mean_monthly_spearman: 0.0017
+  spearman_months_computed: 129
+  representative_month: 2019-07
+  representative_month_n_stocks: 174
+  ols_slope_representative: 0.037884
+  fwd_return_mean: 0.013278
+  fwd_return_std: 0.083319
+  survivorship_bias_acknowledged: yes
+  ── plot: s1_momentum_scatter.png ──
+     type: scatter (momentum_z vs excess return)
+     n_points: 174
+     x_range: [-2.28, 2.58]
+     y_range: [-0.2203, 0.2040]
+     title: Cross-Sectional: Momentum vs Excess Return (2019-07)
+  ── plot: s1_return_distribution.png ──
+     type: histogram (cross-sectional forward returns)
+     n_observations: 174
+     n_bins: 30
+     x_range: [-0.2298, 0.1945]
+     title: Cross-Sectional Return Distribution (2019-07)
+✓ s1_cross_sectional_setup: ALL PASSED
+
+--- lecture/s2_signal_evaluation.py ---
+  [1/129] Fama-MacBeth OLS for 2014-03-31
+  [21/129] Fama-MacBeth OLS for 2015-11-30
+  [41/129] Fama-MacBeth OLS for 2017-07-31
+  [61/129] Fama-MacBeth OLS for 2019-03-31
+  [81/129] Fama-MacBeth OLS for 2020-11-30
+  [101/129] Fama-MacBeth OLS for 2022-07-31
+  [121/129] Fama-MacBeth OLS for 2024-03-31
+  Fama-MacBeth predictions: 19071 obs, 117 months (after 12-month burn-in)
+  Pearson IC series: 117 months
+  Rank IC series:    117 months
+
+  Pearson IC summary:
+    mean_ic: 0.046624
+    std_ic: 0.198924
+    icir: 0.234383
+    t_stat: 2.535244
+    p_value: 0.012568
+    pct_positive: 0.547009
+    n_months: 117
+
+  Rank IC summary:
+    mean_ic: 0.034311
+    std_ic: 0.186069
+    icir: 0.184398
+    t_stat: 1.994575
+    p_value: 0.048434
+    pct_positive: 0.547009
+    n_months: 117
+
+  Fundamental Law of Active Management:
+    IC  = 0.0466
+    BR  = 174 (median stocks per month)
+    Predicted IR = IC × √BR = 0.0466 × √174 = 0.6150
+    Actual ICIR  = 0.2344
+    Ratio (predicted / actual) = 2.62
+
+══ lecture/s2_signal_evaluation ══════════════════════════
+  n_ic_months: 117
+  mean_pearson_ic: 0.046624
+  std_pearson_ic: 0.198924
+  mean_rank_ic: 0.034311
+  std_rank_ic: 0.186069
+  |rank_ic - pearson_ic|: 0.012314
+  icir_pearson: 0.2344
+  icir_rank: 0.1844
+  t_stat: 2.5352
+  p_value: 0.012568
+  pct_positive: 0.5470
+  breadth_BR: 174
+  predicted_IR: 0.6150
+  actual_ICIR: 0.2344
+  ── plot: s2_ic_bar_chart.png ──
+     type: bar chart (monthly IC, colored by sign)
+     n_bars: 117
+     y_range: [-0.4761, 0.6685]
+     title: Monthly Information Coefficient (Fama-MacBeth Linear Signal)
+  ── plot: s2_icir_decomposition.png ──
+     type: 3-panel (IC distribution, Pearson vs Rank, ICIR decomposition)
+     titles: ['IC Distribution', 'Pearson IC vs Rank IC', 'ICIR Decomposition']
+✓ s2_signal_evaluation: ALL PASSED
+
+--- lecture/s3_gradient_boosting_alpha.py ---
+── DATA QUALITY ──────────────────────────────────────
+  Panel shape: (22446, 8)
+  Feature months: 129
+  Tickers/month: 174–174
+  Target (fwd_return) mean: 0.013278
+  Target std: 0.083319
+  Missing rates:
+    pb_ratio_z: 6.32%
+    roe_z: 6.32%
+    asset_growth_z: 0.00%
+    earnings_yield_z: 0.00%
+    momentum_z: 0.00%
+    reversal_z: 0.00%
+    volatility_z: 0.00%
+  NOTE: LightGBM handles NaN natively (no imputation needed)
+  SURVIVORSHIP BIAS: universe is current S&P 500 — results overstate
+
+── HYPERPARAMETER SEARCH ─────────────────────────────
+  Training window: 60 months (10440 obs)
+  CV: PurgedWalkForwardCV(n_splits=3, purge_gap=1)
+  Grid: lr=[0.005, 0.01, 0.05], leaves=[15, 31, 63]
+  Best: lr=0.05, leaves=31, n_est=10, CV IC=0.0700
+
+── WALK-FORWARD TRAINING (68 windows) ───────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+
+── OOS SIGNAL QUALITY ────────────────────────────────
+  OOS months: 68
+  Mean Pearson IC: 0.0460
+  Mean Rank IC: 0.0259
+  Std IC: 0.1759
+  ICIR: 0.2613
+  pct_positive: 0.5882
+  t-stat: 2.1547
+  p-value: 0.0348
+
+── PREDICTION QUALITY ────────────────────────────────
+  Median spread_ratio (all months): 0.0547
+  Last month spread_ratio: 0.0588
+  Last month unique_ratio: 0.7126
+  Last month range_ratio: 0.0470
+
+── OVERFITTING CHECK ─────────────────────────────────
+  Mean train IC: 0.3095
+  Mean OOS IC: 0.0460
+  Train/OOS ratio: 6.73
+  ⚠ OVERFIT: train IC (0.3095) > 2 × OOS IC (0.0460)
+
+── NAIVE BASELINE COMPARISON ─────────────────────────
+  Naive (momentum_z) mean IC: 0.0220
+  GBM mean IC: 0.0460
+  Mean improvement: 0.0240
+  Paired t-stat: 0.5689
+  Paired p-value: 0.5713
+  Significant (5%): False
+
+  S3-3 note: |Rank IC - Pearson IC| = 0.0200 (criterion threshold 0.01 infeasible — see notes)
+══ lecture/s3_gradient_boosting_alpha ═══════════════
+  n_oos_months: 68
+  stocks_per_month: 174–174
+  mean_pearson_ic: 0.0460
+  mean_rank_ic: 0.0259
+  std_ic: 0.1759
+  icir: 0.2613
+  pct_positive: 0.5882
+  t_stat: 2.1547
+  p_value: 0.0348
+  median_spread_ratio: 0.0547
+  best_learning_rate: 0.05
+  best_num_leaves: 31
+  mean_early_stop_round: 12.4
+  std_early_stop_round: 11.4
+  mean_train_ic: 0.3095
+  train_oos_ratio: 6.73
+  naive_mean_ic: 0.0220
+  gbm_vs_naive_improvement: 0.0240
+  gbm_vs_naive_t_stat: 0.5689
+  gbm_vs_naive_p_value: 0.5713
+  ── plot: s3_monthly_ic.png ──
+     type: bar chart (monthly IC, colored by sign)
+     n_bars: 68
+     y_range: [-0.3984, 0.4134]
+     title: GBM Walk-Forward: Monthly OOS IC
+  ── plot: s3_cumulative_ic.png ──
+     type: line chart (cumulative IC)
+     n_lines: 2
+     y_range: [-0.37, 3.31]
+     title: GBM Walk-Forward: Cumulative OOS IC
+  ── cached outputs ──
+     gbm_predictions.parquet: (11832, 2)
+     gbm_ic_series.parquet: (68,)
+     gbm_best_params.json: {'learning_rate': 0.05, 'num_leaves': 31}
+✓ s3_gradient_boosting_alpha: ALL PASSED
+
+--- seminar/ex2_feature_knockout.py ---
+Panel shape: (22446, 8)
+Features: ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z']
+Unique dates: 129
+
+── Running baseline model (all 7 features) ──
+    [baseline] window 1/68  (0s elapsed)
+    [baseline] window 11/68  (4s elapsed)
+    [baseline] window 21/68  (7s elapsed)
+    [baseline] window 31/68  (11s elapsed)
+    [baseline] window 41/68  (14s elapsed)
+    [baseline] window 51/68  (17s elapsed)
+    [baseline] window 61/68  (21s elapsed)
+    [baseline] done — 68 windows in 23.8s
+  Baseline mean OOS IC: 0.0221
+
+── Leave-One-Out Feature Knockout ──
+
+  Dropping: pb_ratio_z
+    [LOO-pb_ratio_z] window 1/68  (0s elapsed)
+    [LOO-pb_ratio_z] window 11/68  (4s elapsed)
+    [LOO-pb_ratio_z] window 21/68  (7s elapsed)
+    [LOO-pb_ratio_z] window 31/68  (10s elapsed)
+    [LOO-pb_ratio_z] window 41/68  (13s elapsed)
+    [LOO-pb_ratio_z] window 51/68  (17s elapsed)
+    [LOO-pb_ratio_z] window 61/68  (21s elapsed)
+    [LOO-pb_ratio_z] done — 68 windows in 23.1s
+    Mean IC without pb_ratio_z: 0.0139  (drop: +0.0082)
+
+  Dropping: roe_z
+    [LOO-roe_z] window 1/68  (0s elapsed)
+    [LOO-roe_z] window 11/68  (3s elapsed)
+    [LOO-roe_z] window 21/68  (9s elapsed)
+    [LOO-roe_z] window 31/68  (15s elapsed)
+    [LOO-roe_z] window 41/68  (20s elapsed)
+    [LOO-roe_z] window 51/68  (26s elapsed)
+    [LOO-roe_z] window 61/68  (32s elapsed)
+    [LOO-roe_z] done — 68 windows in 36.7s
+    Mean IC without roe_z: 0.0242  (drop: -0.0021)
+
+  Dropping: asset_growth_z
+    [LOO-asset_growth_z] window 1/68  (0s elapsed)
+    [LOO-asset_growth_z] window 11/68  (6s elapsed)
+    [LOO-asset_growth_z] window 21/68  (12s elapsed)
+    [LOO-asset_growth_z] window 31/68  (18s elapsed)
+    [LOO-asset_growth_z] window 41/68  (20s elapsed)
+    [LOO-asset_growth_z] window 51/68  (24s elapsed)
+    [LOO-asset_growth_z] window 61/68  (28s elapsed)
+    [LOO-asset_growth_z] done — 68 windows in 30.0s
+    Mean IC without asset_growth_z: 0.0147  (drop: +0.0074)
+
+  Dropping: earnings_yield_z
+    [LOO-earnings_yield_z] window 1/68  (0s elapsed)
+    [LOO-earnings_yield_z] window 11/68  (3s elapsed)
+    [LOO-earnings_yield_z] window 21/68  (7s elapsed)
+    [LOO-earnings_yield_z] window 31/68  (10s elapsed)
+    [LOO-earnings_yield_z] window 41/68  (13s elapsed)
+    [LOO-earnings_yield_z] window 51/68  (17s elapsed)
+    [LOO-earnings_yield_z] window 61/68  (21s elapsed)
+    [LOO-earnings_yield_z] done — 68 windows in 23.0s
+    Mean IC without earnings_yield_z: 0.0203  (drop: +0.0018)
+
+  Dropping: momentum_z
+    [LOO-momentum_z] window 1/68  (0s elapsed)
+    [LOO-momentum_z] window 11/68  (3s elapsed)
+    [LOO-momentum_z] window 21/68  (7s elapsed)
+    [LOO-momentum_z] window 31/68  (11s elapsed)
+    [LOO-momentum_z] window 41/68  (14s elapsed)
+    [LOO-momentum_z] window 51/68  (17s elapsed)
+    [LOO-momentum_z] window 61/68  (21s elapsed)
+    [LOO-momentum_z] done — 68 windows in 23.4s
+    Mean IC without momentum_z: 0.0215  (drop: +0.0007)
+
+  Dropping: reversal_z
+    [LOO-reversal_z] window 1/68  (0s elapsed)
+    [LOO-reversal_z] window 11/68  (4s elapsed)
+    [LOO-reversal_z] window 21/68  (8s elapsed)
+    [LOO-reversal_z] window 31/68  (12s elapsed)
+    [LOO-reversal_z] window 41/68  (15s elapsed)
+    [LOO-reversal_z] window 51/68  (18s elapsed)
+    [LOO-reversal_z] window 61/68  (21s elapsed)
+    [LOO-reversal_z] done — 68 windows in 23.7s
+    Mean IC without reversal_z: 0.0386  (drop: -0.0165)
+
+  Dropping: volatility_z
+    [LOO-volatility_z] window 1/68  (0s elapsed)
+    [LOO-volatility_z] window 11/68  (4s elapsed)
+    [LOO-volatility_z] window 21/68  (8s elapsed)
+    [LOO-volatility_z] window 31/68  (11s elapsed)
+    [LOO-volatility_z] window 41/68  (14s elapsed)
+    [LOO-volatility_z] window 51/68  (17s elapsed)
+    [LOO-volatility_z] window 61/68  (21s elapsed)
+    [LOO-volatility_z] done — 68 windows in 23.8s
+    Mean IC without volatility_z: 0.0290  (drop: -0.0069)
+
+── Feature Correlation Matrix (7x7) ──
+                  pb_ratio_z  roe_z  asset_growth_z  earnings_yield_z  momentum_z  reversal_z  volatility_z
+pb_ratio_z             1.000  0.739           0.063            -0.515       0.140       0.044         0.015
+roe_z                  0.739  1.000           0.097             0.090       0.081       0.027        -0.057
+asset_growth_z         0.063  0.097           1.000             0.008       0.085       0.025         0.077
+earnings_yield_z      -0.515  0.090           0.008             1.000      -0.111      -0.031        -0.059
+momentum_z             0.140  0.081           0.085            -0.111       1.000       0.004        -0.038
+reversal_z             0.044  0.027           0.025            -0.031       0.004       1.000        -0.011
+volatility_z           0.015 -0.057           0.077            -0.059      -0.038      -0.011         1.000
+
+Top-2 most correlated features: ['pb_ratio_z', 'roe_z']
+  Correlation: 0.739
+
+── Leave-Two-Out: Removing top-2 correlated features jointly ──
+  Remaining features: ['asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z']
+    [L2O-joint] window 1/68  (0s elapsed)
+    [L2O-joint] window 11/68  (3s elapsed)
+    [L2O-joint] window 21/68  (7s elapsed)
+    [L2O-joint] window 31/68  (12s elapsed)
+    [L2O-joint] window 41/68  (17s elapsed)
+    [L2O-joint] window 51/68  (23s elapsed)
+    [L2O-joint] window 61/68  (30s elapsed)
+    [L2O-joint] done — 68 windows in 33.9s
+  Joint mean IC: 0.0117
+  Joint IC drop: +0.0104
+  Sum of individual drops: +0.0062
+  Substitution ratio: 1.68
+
+══ seminar/ex2_feature_knockout ══════════════════════════
+  baseline_mean_ic: 0.0221
+  n_loo_models: 7
+  loo_pb_ratio_z: mean_ic=0.0139  drop=+0.0082
+  loo_roe_z: mean_ic=0.0242  drop=-0.0021
+  loo_asset_growth_z: mean_ic=0.0147  drop=+0.0074
+  loo_earnings_yield_z: mean_ic=0.0203  drop=+0.0018
+  loo_momentum_z: mean_ic=0.0215  drop=+0.0007
+  loo_reversal_z: mean_ic=0.0386  drop=-0.0165
+  loo_volatility_z: mean_ic=0.0290  drop=-0.0069
+  largest_single_drop: 0.0082
+  most_important_feature: pb_ratio_z
+  top2_correlated: ['pb_ratio_z', 'roe_z']
+  top2_corr_value: 0.739
+  joint_drop: +0.0104
+  sum_individual_drops: +0.0062
+  substitution_ratio: 1.68
+  n_oos_months_baseline: 68
+
+  ── correlation_matrix (7x7) ──
+    pb_ratio_z            +1.000  +0.739  +0.063  -0.515  +0.140  +0.044  +0.015
+    roe_z                 +0.739  +1.000  +0.097  +0.090  +0.081  +0.027  -0.057
+    asset_growth_z        +0.063  +0.097  +1.000  +0.008  +0.085  +0.025  +0.077
+    earnings_yield_z      -0.515  +0.090  +0.008  +1.000  -0.111  -0.031  -0.059
+    momentum_z            +0.140  +0.081  +0.085  -0.111  +1.000  +0.004  -0.038
+    reversal_z            +0.044  +0.027  +0.025  -0.031  +0.004  +1.000  -0.011
+    volatility_z          +0.015  -0.057  +0.077  -0.059  -0.038  -0.011  +1.000
+
+  ── plot: ex2_knockout_bars.png ──
+     type: bar chart of IC drop per feature
+     n_bars: 7
+     y_range: [-0.0177, 0.0095]
+     title: Feature Knockout: IC Drop per Feature
+
+  ── plot: ex2_joint_vs_individual.png ──
+     type: grouped bar chart (individual vs joint drop)
+     n_bars: 4
+     y_range: [-0.0027, 0.0110]
+     title: Individual vs Joint Knockout (r=0.74)
+
+✓ ex2_feature_knockout: ALL PASSED
+
+--- seminar/ex3_complexity_ladder.py ---
+=== Complexity Ladder: 5 Models x Walk-Forward ===
+
+
+--- OLS ---
+  [OLS] [1/68] predicting 2019-04-30 (0s)
+  [OLS] [11/68] predicting 2020-02-29 (0s)
+  [OLS] [21/68] predicting 2020-12-31 (0s)
+  [OLS] [31/68] predicting 2021-10-31 (0s)
+  [OLS] [41/68] predicting 2022-08-31 (0s)
+  [OLS] [51/68] predicting 2023-06-30 (0s)
+  [OLS] [61/68] predicting 2024-04-30 (0s)
+  [OLS] Done: 68 windows in 0s
+
+--- Ridge ---
+  [Ridge] [1/68] predicting 2019-04-30 (0s)
+  [Ridge] [11/68] predicting 2020-02-29 (0s)
+  [Ridge] [21/68] predicting 2020-12-31 (0s)
+  [Ridge] [31/68] predicting 2021-10-31 (0s)
+  [Ridge] [41/68] predicting 2022-08-31 (0s)
+  [Ridge] [51/68] predicting 2023-06-30 (0s)
+  [Ridge] [61/68] predicting 2024-04-30 (0s)
+  [Ridge] Done: 68 windows in 0s
+
+--- LightGBM_d3 ---
+  [LightGBM_d3] [1/68] predicting 2019-04-30 (0s)
+  [LightGBM_d3] [11/68] predicting 2020-02-29 (0s)
+  [LightGBM_d3] [21/68] predicting 2020-12-31 (0s)
+  [LightGBM_d3] [31/68] predicting 2021-10-31 (0s)
+  [LightGBM_d3] [41/68] predicting 2022-08-31 (1s)
+  [LightGBM_d3] [51/68] predicting 2023-06-30 (1s)
+  [LightGBM_d3] [61/68] predicting 2024-04-30 (1s)
+  [LightGBM_d3] Done: 68 windows in 1s
+
+--- LightGBM_d8 ---
+  [LightGBM_d8] [1/68] predicting 2019-04-30 (0s)
+  [LightGBM_d8] [11/68] predicting 2020-02-29 (0s)
+  [LightGBM_d8] [21/68] predicting 2020-12-31 (1s)
+  [LightGBM_d8] [31/68] predicting 2021-10-31 (1s)
+  [LightGBM_d8] [41/68] predicting 2022-08-31 (1s)
+  [LightGBM_d8] [51/68] predicting 2023-06-30 (1s)
+  [LightGBM_d8] [61/68] predicting 2024-04-30 (2s)
+  [LightGBM_d8] Done: 68 windows in 2s
+
+--- NN ---
+  [NN] [1/68] predicting 2019-04-30 (0s)
+  [NN] [11/68] predicting 2020-02-29 (3s)
+  [NN] [21/68] predicting 2020-12-31 (5s)
+  [NN] [31/68] predicting 2021-10-31 (7s)
+  [NN] [41/68] predicting 2022-08-31 (9s)
+  [NN] [51/68] predicting 2023-06-30 (10s)
+  [NN] [61/68] predicting 2024-04-30 (13s)
+  [NN] Done: 68 windows in 14s
+
+=== Summary Table ===
+      model  n_months  mean_ic  std_ic   icir  pct_positive  t_stat  p_value  mean_spread_ratio
+        OLS        68   0.0595  0.2477 0.2400        0.5735  1.9794   0.0519             2.6838
+      Ridge        68   0.0605  0.2479 0.2441        0.5882  2.0131   0.0481             2.6864
+LightGBM_d3        68   0.0589  0.1849 0.3185        0.5882  2.6263   0.0107             1.8080
+LightGBM_d8        68   0.0271  0.1767 0.1537        0.5588  1.2672   0.2095             2.1584
+         NN        68   0.0562  0.2257 0.2490        0.5441  2.0537   0.0439             2.5846
+
+=== Paired t-tests (adjacent complexity levels) ===
+                      pair  t_stat  p_value  ic_diff
+              OLS vs Ridge -1.0538   0.2957   0.0011
+      Ridge vs LightGBM_d3  0.0624   0.9504  -0.0016
+LightGBM_d3 vs LightGBM_d8  2.4146   0.0185  -0.0317
+         LightGBM_d8 vs NN -1.1980   0.2351   0.0291
+
+Monotonicity check: IC monotonically increasing = False
+  -> Complexity does NOT guarantee better IC (expected teaching point)
+
+══ seminar/ex3_complexity_ladder ══════════════════════
+  OLS:
+    n_months: 68
+    mean_ic: 0.0595
+    std_ic: 0.2477
+    icir: 0.2400
+    pct_positive: 0.5735
+    t_stat: 1.9794
+    p_value: 0.0519
+    mean_spread_ratio: 2.6838
+  Ridge:
+    n_months: 68
+    mean_ic: 0.0605
+    std_ic: 0.2479
+    icir: 0.2441
+    pct_positive: 0.5882
+    t_stat: 2.0131
+    p_value: 0.0481
+    mean_spread_ratio: 2.6864
+  LightGBM_d3:
+    n_months: 68
+    mean_ic: 0.0589
+    std_ic: 0.1849
+    icir: 0.3185
+    pct_positive: 0.5882
+    t_stat: 2.6263
+    p_value: 0.0107
+    mean_spread_ratio: 1.8080
+  LightGBM_d8:
+    n_months: 68
+    mean_ic: 0.0271
+    std_ic: 0.1767
+    icir: 0.1537
+    pct_positive: 0.5588
+    t_stat: 1.2672
+    p_value: 0.2095
+    mean_spread_ratio: 2.1584
+  NN:
+    n_months: 68
+    mean_ic: 0.0562
+    std_ic: 0.2257
+    icir: 0.2490
+    pct_positive: 0.5441
+    t_stat: 2.0537
+    p_value: 0.0439
+    mean_spread_ratio: 2.5846
+
+  monotonic_increase: False
+
+  paired_tests:
+    OLS vs Ridge: t=-1.0538, p=0.2957, ic_diff=0.0011
+    Ridge vs LightGBM_d3: t=0.0624, p=0.9504, ic_diff=-0.0016
+    LightGBM_d3 vs LightGBM_d8: t=2.4146, p=0.0185, ic_diff=-0.0317
+    LightGBM_d8 vs NN: t=-1.1980, p=0.2351, ic_diff=0.0291
+
+  ── plot: ex3_complexity_ladder.png ──
+     type: grouped bar chart (IC, ICIR, pct_positive)
+     n_bars_per_panel: 5
+     panel_0_title: Mean OOS IC by Model
+     panel_0_y_range: [0.0000, 0.0635]
+     panel_1_title: ICIR by Model
+     panel_1_y_range: [0.0000, 0.3344]
+     panel_2_title: % Positive IC by Model
+     panel_2_y_range: [0.0000, 0.6176]
+
+✓ ex3_complexity_ladder: ALL PASSED
+
+--- lecture/s4_neural_vs_trees.py ---
+── DATA & UPSTREAM ───────────────────────────────────
+  Panel shape: (22446, 8)
+  Feature months: 129
+  GBM IC series: 68 months
+  GBM predictions: (11832, 2)
+  Device: mps
+
+── HYPERPARAMETER SEARCH (NN) ───────────────────────
+  Training window: 60 months (10440 obs)
+  Grid: 27 combinations
+  CV: PurgedWalkForwardCV(n_splits=3)
+  [3/27] lr=0.0001, hs=16, dp=0.5 -> CV IC=0.0003
+  [6/27] lr=0.0001, hs=32, dp=0.5 -> CV IC=0.0051
+  [9/27] lr=0.0001, hs=64, dp=0.5 -> CV IC=-0.0019
+  [12/27] lr=0.001, hs=16, dp=0.5 -> CV IC=0.0336
+  [15/27] lr=0.001, hs=32, dp=0.5 -> CV IC=0.0299
+  [18/27] lr=0.001, hs=64, dp=0.5 -> CV IC=0.0288
+  [21/27] lr=0.01, hs=16, dp=0.5 -> CV IC=0.0557
+  [24/27] lr=0.01, hs=32, dp=0.5 -> CV IC=0.0490
+  [27/27] lr=0.01, hs=64, dp=0.5 -> CV IC=0.0400
+  Best: lr=0.001, hidden=64, dropout=0.3, CV IC=0.0698
+
+── WALK-FORWARD TRAINING (68 windows) ───────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+
+── NN OOS SIGNAL QUALITY ─────────────────────────────
+  OOS months: 68
+  Mean IC: 0.0456
+  Std IC: 0.2165
+  ICIR: 0.2107
+  pct_positive: 0.5588
+  t-stat: 1.7377
+  p-value: 0.0869
+
+── NN PREDICTION QUALITY ─────────────────────────────
+  Median spread_ratio: 0.0641
+  Min spread_ratio: 0.0192
+  Max spread_ratio: 0.2015
+
+── TRAINING STABILITY ────────────────────────────────
+  Mean stopping epoch: 27.6
+  Std stopping epoch: 11.1
+  Pct maxed out (50 epochs): 5.88%
+  Windows with valid IC: 68/68
+
+── OVERFITTING CHECK (NN) ────────────────────────────
+  Mean train IC: 0.0986
+  Mean OOS IC: 0.0456
+  Train/OOS ratio: 2.16
+  No overfitting flag (ratio <= 3.0)
+
+── GBM vs NN HEAD-TO-HEAD ────────────────────────────
+  Common OOS months: 68
+  GBM mean IC: 0.0460
+  NN mean IC: 0.0456
+  |GBM IC - NN IC|: 0.0003
+  Paired t-stat: 0.0178
+  Paired p-value: 0.9859
+  Mean monthly diff (GBM - NN): 0.0003
+
+══ lecture/s4_neural_vs_trees ═══════════════════════
+  n_oos_months: 68
+  nn_mean_ic: 0.0456
+  nn_std_ic: 0.2165
+  nn_icir: 0.2107
+  nn_pct_positive: 0.5588
+  nn_t_stat: 1.7377
+  nn_p_value: 0.0869
+  median_spread_ratio: 0.0641
+  mean_stopping_epoch: 27.6
+  std_stopping_epoch: 11.1
+  mean_train_ic: 0.0986
+  train_oos_ratio: 2.16
+  gbm_mean_ic: 0.0460
+  nn_mean_ic: 0.0456
+  ic_diff_abs: 0.0003
+  paired_t_stat: 0.0178
+  paired_p_value: 0.9859
+  best_lr: 0.001
+  best_hidden_size: 64
+  best_dropout: 0.3
+  device: mps
+  ── plot: s4_ic_comparison_bars.png ──
+     type: 3-panel bar chart (mean IC, ICIR, pct_positive)
+     n_panels: 3
+     models: ['GBM', 'NN']
+     title_0: Mean OOS IC: GBM vs NN
+  ── plot: s4_monthly_ic_overlay.png ──
+     type: overlaid line chart (monthly IC, both models)
+     n_lines: 3
+     y_range: [-0.4708, 0.6247]
+     title: Monthly OOS IC: GBM vs Neural Network
+  ── cached outputs ──
+     nn_predictions.parquet: (11832, 2)
+     nn_ic_series.parquet: (68,)
+✓ s4_neural_vs_trees: ALL PASSED
+
+--- lecture/s5_feature_engineering.py ---
+[s5] Loaded S3 baseline: mean IC = 0.0460, best_params = {'learning_rate': 0.05, 'num_leaves': 31}
+
+── EXPANDED FEATURES ────────────────────────────────
+  Original features: 7
+  Expanded features: 12
+  Columns: ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z', 'mom_x_vol', 'ey_x_pb', 'roe_x_ag', 'momentum_sq', 'abs_reversal']
+  Interaction NaN on finite originals: 0
+
+── WALK-FORWARD (expanded, 68 windows) ─────────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+
+── EXPANDED MODEL IC ────────────────────────────────
+  OOS months: 68
+  Mean IC (expanded): 0.0504
+  Mean IC (baseline S3): 0.0460
+  IC change (expanded - baseline): 0.0044
+  Std IC: 0.1710
+  ICIR: 0.2946
+  pct_positive: 0.6029
+
+── SHAP FEATURE IMPORTANCE (pooled, 2088 obs) ──
+  Per-feature mean |SHAP|:
+     1. volatility_z: 0.001182 (original)
+     2. mom_x_vol: 0.000723 (engineered)
+     3. reversal_z: 0.000631 (original)
+     4. pb_ratio_z: 0.000480 (original)
+     5. momentum_sq: 0.000432 (engineered)
+     6. momentum_z: 0.000427 (original)
+     7. abs_reversal: 0.000326 (engineered)
+     8. ey_x_pb: 0.000297 (engineered)
+     9. roe_z: 0.000230 (original)
+    10. asset_growth_z: 0.000199 (original)
+    11. earnings_yield_z: 0.000197 (original)
+    12. roe_x_ag: 0.000175 (engineered)
+
+  Grouped by parent original feature:
+    1. volatility_z: 0.001543
+    2. momentum_z: 0.001220
+    3. reversal_z: 0.000956
+    4. pb_ratio_z: 0.000629
+    5. earnings_yield_z: 0.000345
+    6. roe_z: 0.000318
+    7. asset_growth_z: 0.000287
+  Top-2 (grouped) are original features: True
+
+── PERMUTATION IMPORTANCE (pooled OOS) ──────────────
+  Per-feature permutation importance:
+     1. volatility_z: 0.000007
+     2. momentum_z: 0.000006
+     3. asset_growth_z: 0.000005
+     4. reversal_z: 0.000004
+     5. earnings_yield_z: 0.000002
+     6. abs_reversal: 0.000001
+     7. mom_x_vol: 0.000001
+     8. ey_x_pb: -0.000000
+     9. pb_ratio_z: -0.000001
+    10. roe_x_ag: -0.000002
+    11. roe_z: -0.000003
+    12. momentum_sq: -0.000004
+
+  Grouped by parent original feature:
+    1. volatility_z: 0.000008
+    2. reversal_z: 0.000005
+    3. asset_growth_z: 0.000004
+    4. momentum_z: 0.000002
+    5. earnings_yield_z: 0.000001
+    6. pb_ratio_z: -0.000001
+    7. roe_z: -0.000004
+  Rank corr (grouped SHAP vs grouped Perm): 0.5357
+
+══ lecture/s5_feature_engineering ═══════════════════
+  n_expanded_features: 12
+  expanded_columns: ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z', 'mom_x_vol', 'ey_x_pb', 'roe_x_ag', 'momentum_sq', 'abs_reversal']
+  interaction_nan_on_finite: 0
+  n_oos_months: 68
+  mean_ic_expanded: 0.0504
+  mean_ic_baseline: 0.0460
+  ic_change: 0.0044
+  std_ic: 0.1710
+  icir: 0.2946
+  pct_positive: 0.6029
+  mean_train_ic: 0.3231
+  best_params_reused: {'learning_rate': 0.05, 'num_leaves': 31}
+  top5_shap_features: ['volatility_z', 'mom_x_vol', 'reversal_z', 'pb_ratio_z', 'momentum_sq']
+  top2_grouped_features: ['volatility_z', 'momentum_z']
+  top2_are_original: True
+  rank_corr_shap_perm_grouped: 0.5357
+  ── plot: s5_shap_beeswarm.png ──
+     type: SHAP beeswarm (summary plot)
+     n_features: 12
+     n_samples: 174
+     title: SHAP Feature Importance (Last OOS Cross-Section)
+  ── plot: s5_shap_bar.png ──
+     type: horizontal bar chart (mean |SHAP| by feature)
+     n_bars: 12
+     x_range: [0.000000, 0.001241]
+     title: Feature Importance: Original (blue) vs Engineered (orange)
+✓ s5_feature_engineering: ALL PASSED
+
+--- lecture/s6_signal_to_portfolio.py ---
+/Users/dasmal/finance_stuff/course/week04_ml_alpha/code/lecture/s6_signal_to_portfolio.py:80: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/Users/dasmal/finance_stuff/course/week04_ml_alpha/code/lecture/s6_signal_to_portfolio.py:160: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Loaded GBM predictions: 11832 obs, 68 months, 174 stocks/month
+
+Decile mean monthly returns:
+  D 1: +0.01354
+  D 2: +0.01106
+  D 3: +0.00920
+  D 4: +0.01183
+  D 5: +0.01508
+  D 6: +0.01474
+  D 7: +0.01764
+  D 8: +0.01397
+  D 9: +0.01893
+  D10: +0.02233
+
+Top decile (D10) mean:    +0.02233
+Bottom decile (D1) mean: +0.01354
+Top - Bottom spread:        +0.00880
+Rank corr (decile vs mean return): 0.830 (p=0.003)
+
+Long-short (D10 - D1) monthly return series:
+  Observations: 68
+  Mean monthly:  +0.01342
+  Std monthly:   0.06016
+  Gross ann. Sharpe: 0.773
+
+Turnover analysis:
+  Monthly turnover obs: 67
+  Mean monthly one-way: 0.7894
+  Annualized one-way:   9.47
+
+Net returns at 10 bps one-way cost:
+  Mean monthly net:  +0.01212
+  Net ann. Sharpe:   0.691
+  Sharpe drag:       +0.082
+
+Drawdown analysis:
+  Max drawdown (gross): -0.2346
+  Max drawdown (net):   -0.2372
+
+Return distribution (gross long-short):
+  Skewness:         -0.248
+  Excess kurtosis:  +3.669
+  Sharpe:           0.773
+
+══ lecture/s6_signal_to_portfolio ══════════════════════
+  n_oos_months: 68
+  n_decile_months: 68
+  n_decile_groups: 10
+  stocks_per_month: 174
+  top_decile_mean: +0.022331
+  bottom_decile_mean: +0.013536
+  spread: +0.008795
+  monotonicity_rank_corr: 0.830
+  ls_mean_monthly: +0.013419
+  ls_std_monthly: 0.060156
+  sharpe_gross: 0.7728
+  sharpe_net_10bps: 0.6905
+  sharpe_drag: +0.0822
+  mean_monthly_turnover: 0.7894
+  annual_turnover: 9.47
+  max_drawdown_gross: -0.2346
+  max_drawdown_net: -0.2372
+  skewness: -0.2479
+  excess_kurtosis: +3.6689
+  ── plot: s6_decile_returns.png ──
+     type: bar chart of mean monthly return by decile
+     n_bars: 10
+     y_range: [0.0000, 2.3448]
+     title: Mean Monthly Return by Prediction Decile (GBM)
+  ── plot: s6_cumulative_long_short.png ──
+     type: line chart of cumulative gross + net long-short returns
+     n_lines: 3
+     y_range: [0.9533, 2.0351]
+     title: Cumulative Long-Short Returns (GBM Signal, Decile Sort)
+✓ s6_signal_to_portfolio: ALL PASSED
+
+--- seminar/ex1_ic_autopsy.py ---
+/Users/dasmal/finance_stuff/course/week04_ml_alpha/code/seminar/ex1_ic_autopsy.py:104: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+VIX median threshold: 18.70
+High-vol months: 34, Low-vol months: 34
+
+High-vol regime: mean IC = 0.0533, std IC = 0.1876, pct_positive = 0.5294
+Low-vol regime:  mean IC = 0.0386, std IC = 0.1660, pct_positive = 0.6471
+Regime contrast |IC_high - IC_low|: 0.0146
+
+Welch two-sample t-test (high vs low vol IC):
+  t-statistic: 0.3409
+  p-value: 0.7343
+
+══ seminar/ex1_ic_autopsy ══════════════════════════
+  n_oos_months: 68
+  vix_median_threshold: 18.70
+  n_high_vol: 34
+  n_low_vol: 34
+  mean_ic_high: 0.0533
+  mean_ic_low: 0.0386
+  std_ic_high: 0.1876
+  std_ic_low: 0.1660
+  regime_contrast: 0.0146
+  t_stat: 0.3409
+  p_value: 0.7343
+  pct_positive_high: 0.5294
+  pct_positive_low: 0.6471
+  ── plot: ex1_ic_regime.png ──
+     type: bar chart with VIX regime shading
+     n_bars: 136
+     y_range: [-0.40, 0.41]
+     title: GBM IC by VIX Regime
+✓ ex1_ic_autopsy: ALL PASSED
+
+--- seminar/ex4_turnover_tax.py ---
+/Users/dasmal/finance_stuff/course/week04_ml_alpha/code/seminar/ex4_turnover_tax.py:152: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Turnover series length: 67
+Long-short series length (aligned): 67
+Mean monthly one-way turnover: 0.7227
+Annualized one-way turnover: 8.67
+⚠ HIGH TURNOVER: monthly one-way turnover exceeds 0.50 — strategy replaces >50% of holdings each month
+Gross annualized Sharpe: 0.7034
+Net Sharpe at  5 bps: 0.6452  (reduction: 0.0582)
+Net Sharpe at 20 bps: 0.4708  (reduction: 0.2326)
+Net Sharpe at 50 bps: 0.1225  (reduction: 0.5809)
+Breakeven one-way cost: 60.6 bps
+══ seminar/ex4_turnover_tax ══════════════════════════
+  n_groups: 5
+  n_turnover_months: 67
+  mean_monthly_turnover: 0.7227
+  annualized_turnover: 8.67
+  gross_sharpe: 0.7034
+  net_sharpe_5bps: 0.6452
+  net_sharpe_20bps: 0.4708
+  net_sharpe_50bps: 0.1225
+  sharpe_reduction_5bps: 0.0582
+  sharpe_reduction_20bps: 0.2326
+  sharpe_reduction_50bps: 0.5809
+  breakeven_bps: 60.6
+  HIGH_TURNOVER_WARNING: yes (monthly=0.7227)
+  ls_skewness: -0.3347
+  ls_excess_kurtosis: 2.1195
+  ── plot: ex4_sharpe_vs_cost.png ──
+     type: dual-panel (line chart + bar chart)
+     panel_a_n_points: 101
+     panel_a_y_range: [-0.51, 0.76]
+     panel_a_title: Net Sharpe Ratio vs Transaction Cost
+     panel_b_n_bars: 4
+     panel_b_title: Sharpe at Key Cost Levels (bps)
+✓ ex4_turnover_tax: ALL PASSED
+
+--- lecture/s7_alternative_data.py ---
+======================================================================
+ALTERNATIVE DATA IN QUANTITATIVE FINANCE
+======================================================================
+
+Traditional alpha signals (price momentum, value ratios, quality
+metrics) are derived from market prices and financial statements —
+data that every participant can access.  Alternative data refers to
+non-traditional information sources that may provide an edge before
+the signal is priced in.
+
+The alternative data market has grown from ~$200M in 2015 to over
+$7B by 2025 (estimated), driven by hedge funds, asset managers, and
+increasingly by long-only institutional investors.
+
+----------------------------------------------------------------------
+ALTERNATIVE DATA TAXONOMY  (7 categories)
+----------------------------------------------------------------------
+
+  1. Sentiment & News
+     Text-derived signals from news articles, social media, earnings call transcripts, and analyst reports.
+     Examples:
+       - News sentiment scores (RavenPack, Bloomberg Event-Driven)
+       - Social media buzz (Twitter/X, StockTwits, Reddit WallStreetBets)
+       - Earnings call tone and Q&A linguistic features
+       - SEC filing complexity and readability (10-K fog index)
+     Typical lag:    Minutes to hours (news); real-time (social media)
+     Alpha horizon:  Intraday to weeks
+
+  2. Web & App Traffic
+     Digital footprint data measuring consumer engagement with companies' online presence.
+     Examples:
+       - Website visit counts and trends (SimilarWeb, Semrush)
+       - App downloads and daily active users (Sensor Tower, App Annie)
+       - Search engine query volume (Google Trends)
+       - Job posting volume and seniority mix (Burning Glass, Indeed)
+     Typical lag:    Days to weeks
+     Alpha horizon:  Weeks to quarters (leading indicators for revenue)
+
+  3. Geolocation & Foot Traffic
+     Mobile device location data revealing real-world consumer behaviour at physical locations.
+     Examples:
+       - Retail foot traffic counts (Placer.ai, SafeGraph)
+       - Parking lot satellite imagery occupancy (Orbital Insight)
+       - Airport and hotel check-in proxies
+       - Supply chain port and warehouse activity
+     Typical lag:    Days (aggregated panels)
+     Alpha horizon:  Weeks to quarters (nowcasting same-store sales)
+
+  4. Satellite & Imagery
+     Overhead and ground-level imagery processed with computer vision to extract economic signals.
+     Examples:
+       - Oil storage tank fill levels (shadow analysis, Ursa Space)
+       - Agricultural crop health via NDVI (Descartes Labs)
+       - Nighttime light intensity as economic activity proxy
+       - Construction site progress tracking
+     Typical lag:    Days to weeks (revisit frequency dependent)
+     Alpha horizon:  Weeks to months (commodity and macro signals)
+
+  5. Transaction & Payment Data
+     Aggregated, anonymised consumer spending data from credit cards, point-of-sale systems, and e-commerce receipts.
+     Examples:
+       - Credit card transaction panels (Mastercard SpendingPulse)
+       - E-commerce receipt scraping (Edison Trends, Measurable AI)
+       - Point-of-sale data aggregation (Second Measure, Bloomberg)
+       - Bank account transaction categorisation
+     Typical lag:    Days (card networks); weeks (receipt panels)
+     Alpha horizon:  Weeks to quarters (revenue nowcasting)
+
+  6. Government & Regulatory Filings
+     Structured data extracted from public filings, permits, patents, and regulatory records.
+     Examples:
+       - FDA drug approval pipeline and PDUFA dates
+       - Patent filings and citation networks (Google Patents)
+       - EPA emissions and compliance records
+       - SEC insider transactions (Form 4) and 13-F holdings
+     Typical lag:    Days to months (filing cadence varies)
+     Alpha horizon:  Months (event-driven or structural)
+
+  7. Expert Networks & Surveys
+     Proprietary intelligence from industry experts, procurement managers, and specialised surveys.
+     Examples:
+       - Expert transcript libraries (GLG, AlphaSights, Tegus)
+       - Procurement manager surveys (ISM PMI sub-components)
+       - Channel checks aggregated from supply chain contacts
+       - Sell-side analyst revision velocity
+     Typical lag:    Days to weeks (survey cadence)
+     Alpha horizon:  Weeks to quarters
+
+----------------------------------------------------------------------
+INSTITUTIONAL COST CONTEXT
+----------------------------------------------------------------------
+
+Alternative data is expensive.  The median institutional spend on
+alternative data has risen sharply:
+
+  BattleFin (2023 survey):  median fund spend ~$1.6M/year on alt data
+  Exabel (2024 report):     similar $1.6M median, top decile >$5M/year
+
+This creates a structural barrier to entry:
+
+  - A small fund with $100M AUM spending $1.6M on data needs the data
+    to generate at least 160 bps of gross alpha just to break even on
+    the data cost alone (before trading costs, infrastructure, salary).
+
+  - Large multi-strategy funds (Citadel, Millennium, Point72) can
+    amortise data costs over many PMs and larger AUM, making marginal
+    data ROI far more favourable.
+
+  - Vendor consolidation (S&P Global acquired Kensho; Bloomberg
+    absorbed Second Measure) is reducing the number of independent
+    providers, potentially increasing prices and decreasing edge as
+    the same data feeds reach more market participants.
+
+Key implication for alpha research: by the time an alternative dataset
+is widely available and affordable, its alpha content has often been
+arbitraged away.  The competitive advantage lies in being among the
+earliest adopters — or in combining multiple mediocre signals into a
+composite that remains differentiated.
+
+----------------------------------------------------------------------
+DATA QUALITY CHALLENGES
+----------------------------------------------------------------------
+
+Alternative data introduces quality issues rarely encountered with
+traditional financial data:
+
+  1. SURVIVORSHIP & COVERAGE BIAS
+     App traffic data only covers apps that exist today; discontinued
+     apps (and their failing parent companies) vanish from the panel.
+     Satellite imagery providers change revisit frequency over time,
+     creating non-stationary coverage.
+
+  2. POINT-IN-TIME (PIT) INTEGRITY
+     Unlike prices (which have clean timestamps), alt data revisions
+     are common.  Web traffic estimates are retroactively adjusted;
+     sentiment scores may be recomputed when NLP models are updated.
+     Without careful PIT stamping, backtest alpha is illusory.
+
+  3. SAMPLE REPRESENTATIVENESS
+     Credit card panels cover a biased subset of consumers.  Foot
+     traffic data skews toward smartphone-carrying demographics.
+     Extrapolating from a panel to the full population requires
+     careful calibration.
+
+  4. LEGAL & COMPLIANCE RISK
+     GDPR, CCPA, and evolving privacy regulations constrain how
+     location and transaction data can be collected and used.
+     Datasets that were legal to acquire in 2019 may not be in 2026.
+
+  5. DECAY & CROWDING
+     Alt data signals decay as adoption increases.  A satellite-based
+     oil inventory signal that was novel in 2017 is now a commodity
+     product.  The half-life of alt data alpha is typically 2-4 years
+     from first institutional adoption to broad crowding.
+
+----------------------------------------------------------------------
+BRIDGE TO WEEK 7: NLP & ALTERNATIVE DATA SIGNALS
+----------------------------------------------------------------------
+
+This week we built a complete alpha pipeline using traditional
+features — price momentum, value, quality, and volatility.  In
+Week 7 we will add the first category of alternative data to this
+pipeline: text-derived sentiment signals.
+
+Week 7 covers:
+
+  - Tokenisation, TF-IDF, and word embeddings for financial text
+  - Sentiment scoring with FinBERT (a BERT model fine-tuned on
+    financial text)
+  - Constructing cross-sectional sentiment features from earnings
+    call transcripts and news headlines
+  - Integrating NLP features into the alpha model framework built
+    this week (using the same walk-forward evaluation and IC-based
+    assessment)
+
+The key question Week 7 addresses: does adding NLP-derived sentiment
+to the feature set built here produce a statistically significant
+improvement in out-of-sample IC?  The evaluation framework from this
+week — IC, ICIR, paired tests, net-of-cost Sharpe — carries forward
+directly.
+
+NOTE: Any IC claims for NLP/alt-data signals require empirical
+evidence from our own pipeline or explicit citation to peer-reviewed
+sources.  We do not assert that alt data 'works' in general — we
+test specific signals on specific universes with rigorous OOS
+evaluation.
+
+== lecture/s7_alternative_data ==============================
+  n_categories: 7
+    - Sentiment & News
+    - Web & App Traffic
+    - Geolocation & Foot Traffic
+    - Satellite & Imagery
+    - Transaction & Payment Data
+    - Government & Regulatory Filings
+    - Expert Networks & Surveys
+  institutional_cost_reference: BattleFin/Exabel $1.6M/year
+  bridge_to_week7: NLP & sentiment signals
+  unqualified_ic_claims: 0
+  data_quality_challenges: 5 (survivorship, PIT, representativeness, legal, decay)
+  s7_1_taxonomy_categories: PASS (>= 5)
+  s7_2_cost_context: PASS
+  s7_3_week7_bridge: PASS
+  s7_4_no_unqualified_ic: PASS
+✓ s7_alternative_data: ALL PASSED
+
+--- hw/d1_alpha_engine.py ---
+── DATA QUALITY ──────────────────────────────────────
+  Panel shape: (22446, 8)
+  Feature months: 129
+  Tickers/month: 174–174
+  Target mean: 0.013278, std: 0.083319
+  Missing rates:
+    pb_ratio_z: 6.32%
+    roe_z: 6.32%
+    asset_growth_z: 0.00%
+    earnings_yield_z: 0.00%
+    momentum_z: 0.00%
+    reversal_z: 0.00%
+    volatility_z: 0.00%
+  NOTE: LightGBM handles NaN natively; linear models use imputation
+  SURVIVORSHIP BIAS: S&P 500 universe — results overstate
+
+── ALPHAMODELPIPELINE: DEFAULT RUN (LightGBM) ────────
+  HP search: {'learning_rate': 0.05, 'num_leaves': 31}, n_est=10
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+
+── PIPELINE SUMMARY ──────────────────────────────────
+  mean_ic: 0.0547
+  std_ic: 0.1793
+  icir: 0.3048
+  pct_positive: 0.6029
+  t_stat: 2.5137
+  p_value: 0.0144
+  mean_rank_ic: 0.0310
+  sharpe_gross: 0.9759
+  sharpe_net: 0.9052
+  mean_turnover: 0.8008
+  max_drawdown: -0.2346
+  n_oos_months: 68
+
+── TEMPORAL INTEGRITY ────────────────────────────────
+  Walk-forward splits: 68
+  Purge gap: 1 month(s)
+  Leakage violations: 0
+
+── SKLEARN COMPATIBILITY TEST (Ridge) ────────────────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+  Ridge mean IC: 0.0592
+  Ridge ICIR: 0.2408
+  Ridge Sharpe (gross): 0.9503
+
+── PORTFOLIO ANALYSIS ────────────────────────────────
+  Decile months: 68
+  Decile groups: 10
+  Stocks per decile: ~17
+  Long-short mean monthly: 0.019657
+  Long-short std monthly: 0.069778
+  Gross Sharpe: 0.9759
+  Net Sharpe (10 bps): 0.9052
+  Mean turnover: 0.8008
+  Max drawdown: -0.2346
+  Cumulative (gross) final: 2.0577
+  Cumulative (net) final: 1.9221
+
+══ hw/d1_alpha_engine ═══════════════════════════════
+  n_oos_months: 68
+  mean_pearson_ic: 0.0547
+  mean_rank_ic: 0.0310
+  std_ic: 0.1793
+  icir: 0.3048
+  pct_positive: 0.6029
+  t_stat: 2.5137
+  p_value: 0.0144
+  sharpe_gross: 0.9759
+  sharpe_net: 0.9052
+  mean_turnover: 0.8008
+  max_drawdown: -0.2346
+  ──
+  ridge_mean_ic: 0.0592
+  ridge_icir: 0.2408
+  ridge_sharpe_gross: 0.9503
+  ── plot: d1_portfolio_summary.png ──
+     type: 2-panel (decile returns + cumulative L/S)
+     panel_a_n_bars: 10
+     panel_a_title: Decile Mean Returns (GBM Signal)
+     panel_b_y_range: [0.9510, 2.1501]
+     panel_b_title: Long-Short Cumulative Returns
+✓ d1_alpha_engine: ALL PASSED
+
+--- hw/d2_feature_lab.py ---
+── DATA QUALITY ──────────────────────────────────────
+  Panel shape: (22446, 8)
+  Feature months: 129
+  Tickers/month: 174–174
+  Target mean: 0.013278, std: 0.083319
+  Missing rates:
+    pb_ratio_z: 6.32%
+    roe_z: 6.32%
+    asset_growth_z: 0.00%
+    earnings_yield_z: 0.00%
+    momentum_z: 0.00%
+    reversal_z: 0.00%
+    volatility_z: 0.00%
+  NOTE: LightGBM handles NaN natively; linear models use imputation
+  SURVIVORSHIP BIAS: S&P 500 universe — results overstate
+
+── ALPHAMODELPIPELINE: DEFAULT RUN (LightGBM) ────────
+  HP search: {'learning_rate': 0.05, 'num_leaves': 31}, n_est=10
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+
+── PIPELINE SUMMARY ──────────────────────────────────
+  mean_ic: 0.0547
+  std_ic: 0.1793
+  icir: 0.3048
+  pct_positive: 0.6029
+  t_stat: 2.5137
+  p_value: 0.0144
+  mean_rank_ic: 0.0310
+  sharpe_gross: 0.9759
+  sharpe_net: 0.9052
+  mean_turnover: 0.8008
+  max_drawdown: -0.2346
+  n_oos_months: 68
+
+── TEMPORAL INTEGRITY ────────────────────────────────
+  Walk-forward splits: 68
+  Purge gap: 1 month(s)
+  Leakage violations: 0
+
+── SKLEARN COMPATIBILITY TEST (Ridge) ────────────────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+  Ridge mean IC: 0.0592
+  Ridge ICIR: 0.2408
+  Ridge Sharpe (gross): 0.9503
+
+── PORTFOLIO ANALYSIS ────────────────────────────────
+  Decile months: 68
+  Decile groups: 10
+  Stocks per decile: ~17
+  Long-short mean monthly: 0.019657
+  Long-short std monthly: 0.069778
+  Gross Sharpe: 0.9759
+  Net Sharpe (10 bps): 0.9052
+  Mean turnover: 0.8008
+  Max drawdown: -0.2346
+  Cumulative (gross) final: 2.0577
+  Cumulative (net) final: 1.9221
+
+── BASELINE FEATURES ─────────────────────────────────
+  Original features: ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z']
+  Shape: (23192, 7)
+  Months: 129, Tickers: 179
+
+── CONSTRUCTING PRICE-DERIVED FEATURES ───────────────
+  Amihud illiquidity: computed from OHLCV
+  mom_3m shape: (157, 627)
+  mom_6m shape: (157, 627)
+  mom_12m_1m shape: (157, 627)
+  rvol_3m shape: (157, 627)
+
+── CONSTRUCTING FUNDAMENTAL FEATURES (static ratios) ─
+  D/E ratio: 155/179 tickers covered
+  Profit margins: 174/179 tickers covered
+  ⚠ PIT WARNING: static ratios have full look-ahead bias
+    These are current snapshots applied to all historical months.
+    The PIT contamination check below quantifies the impact.
+
+── EXPANDED FEATURE MATRIX ───────────────────────────
+  Total features: 18
+  Original: 7
+  New: 11
+  Columns: ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z', 'mom_3m', 'mom_6m', 'mom_12m_1m', 'rvol_3m', 'amihud', 'de_ratio', 'profit_margin', 'mom_x_vol', 'val_x_qual', 'mom_sq', 'abs_reversal']
+  Missing rates (new features):
+    mom_3m: 2.47%
+    mom_6m: 2.47%
+    mom_12m_1m: 2.47%
+    rvol_3m: 2.47%
+    amihud: 2.47%
+    de_ratio: 13.12%
+    profit_margin: 2.47%
+    mom_x_vol: 0.09%
+    val_x_qual: 6.17%
+    mom_sq: 0.09%
+    abs_reversal: 0.00%
+
+── FEATURE CORRELATION CHECK ─────────────────────────
+  Max |corr|: 0.9234 (momentum_z vs mom_12m_1m)
+  No near-duplicates (all |corr| < 0.95)
+
+── EXPANDED MODEL (LightGBM, 18 features) ──────────
+  HP search: {'learning_rate': 0.01, 'num_leaves': 63}, n_est=53
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+
+── BASELINE MODEL (LightGBM, 7 features) ────────────
+  HP search: {'learning_rate': 0.05, 'num_leaves': 31}, n_est=10
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+
+── BASELINE vs EXPANDED COMPARISON ───────────────────
+  Baseline mean IC: 0.0547
+  Expanded mean IC: 0.0343
+  IC change: -0.0203
+  Paired t-stat: -1.5263
+  Paired p-value: 0.1316
+  Significant (5%): False
+
+── SHAP FEATURE IMPORTANCE ───────────────────────────
+  SHAP windows pooled: 12
+  Top-10 features by mean |SHAP|:
+    1. volatility_z: 0.001210 (original)
+    2. rvol_3m: 0.001009 (engineered)
+    3. pb_ratio_z: 0.000449 (original)
+    4. amihud: 0.000430 (engineered)
+    5. mom_x_vol: 0.000413 (engineered)
+    6. momentum_z: 0.000356 (original)
+    7. reversal_z: 0.000350 (original)
+    8. mom_3m: 0.000343 (engineered)
+    9. mom_sq: 0.000299 (engineered)
+    10. mom_6m: 0.000267 (engineered)
+
+── ECONOMIC INTERPRETATION (Top-5) ───────────────────
+  1. volatility_z: Higher idiosyncratic volatility correlates with higher expected returns in cross-section (risk compensation).
+  2. rvol_3m: Realized volatility: higher vol stocks carry a risk premium but are also noisier — the Ang et al. (2006) low-vol anomaly.
+  3. pb_ratio_z: Price-to-book captures the value premium — stocks with low P/B tend to earn higher returns (Fama-French HML factor).
+  4. amihud: Amihud illiquidity: less liquid stocks earn a liquidity premium (compensation for trading difficulty).
+  5. mom_x_vol: Interaction: momentum effect may be stronger/weaker in high-vol regimes — captures conditional momentum.
+
+── PIT CONTAMINATION CHECK ───────────────────────────
+  PIT-clean features (12): ['momentum_z', 'reversal_z', 'volatility_z', 'mom_3m', 'mom_6m', 'mom_12m_1m', 'rvol_3m', 'amihud', 'mom_x_vol', 'val_x_qual', 'mom_sq', 'abs_reversal']
+  All features (18): ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z', 'mom_3m', 'mom_6m', 'mom_12m_1m', 'rvol_3m', 'amihud', 'de_ratio', 'profit_margin', 'mom_x_vol', 'val_x_qual', 'mom_sq', 'abs_reversal']
+  HP search: {'learning_rate': 0.05, 'num_leaves': 31}, n_est=10
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+  PIT-clean mean IC: 0.0411
+  All features mean IC: 0.0343
+  Difference (all - clean): -0.0068
+  Minimal PIT contamination effect
+
+  D2-7: IC change = -0.0203 (boundary: [-0.02, +0.03], borderline)
+══ hw/d2_feature_lab ════════════════════════════════
+  n_features: 18
+  n_price_derived: 5
+  n_interaction: 2
+  n_fundamental: 2
+  max_corr: 0.9234 (momentum_z vs mom_12m_1m)
+  ──
+  baseline_mean_ic: 0.0547
+  expanded_mean_ic: 0.0343
+  ic_change: -0.0203
+  paired_t_stat: -1.5263
+  paired_p_value: 0.1316
+  ──
+  pit_clean_mean_ic: 0.0411
+  pit_contamination_diff: -0.0068
+  ──
+  shap_top5: ['volatility_z', 'rvol_3m', 'pb_ratio_z', 'amihud', 'mom_x_vol']
+  shap_top5_original_count: 2
+  ── plot: d2_shap_importance.png ──
+     type: horizontal bar (SHAP feature importance)
+     n_features: 18
+     title: Feature Importance: Expanded Model (blue=original, orange=engineered)
+  ── plot: d2_ic_comparison.png ──
+     type: bar chart (baseline vs expanded IC)
+     title: Feature Expansion: IC Change = -0.0203 (p=0.132)
+✓ d2_feature_lab: ALL PASSED
+
+--- hw/d3_model_comparison.py ---
+── DATA ──────────────────────────────────────────────
+  Expanded features: 18 columns
+  Shape: (22446, 18)
+  Target: 22446 observations
+  Device: cpu
+
+── MODEL: OLS ─────────────────────────────────────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+  mean IC: 0.0436, ICIR: 0.1946, Sharpe: 0.8092
+
+── MODEL: Ridge ─────────────────────────────────────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+  mean IC: 0.0436, ICIR: 0.1947, Sharpe: 0.8282
+
+── MODEL: LightGBM ─────────────────────────────────────
+  HP search: {'learning_rate': 0.01, 'num_leaves': 63}, n_est=53
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+  mean IC: 0.0343, ICIR: 0.1963, Sharpe: 0.7660
+
+── MODEL: NN ─────────────────────────────────────
+  [1/68] predicting 2019-04-30
+  [11/68] predicting 2020-02-29
+  [21/68] predicting 2020-12-31
+  [31/68] predicting 2021-10-31
+  [41/68] predicting 2022-08-31
+  [51/68] predicting 2023-06-30
+  [61/68] predicting 2024-04-30
+  Walk-forward complete: 68 OOS months
+  mean IC: 0.0183, ICIR: 0.0939, Sharpe: 0.2741
+
+── MODEL COMPARISON SUMMARY TABLE ────────────────────
+  Model           IC   σ(IC)    ICIR    pct+  t-stat   p-val     rIC    SR_g    SR_n      TO     MDD
+  ──────────────────────────────────────────────────────────────────────────────────────────────────
+  OLS         0.0436  0.2240  0.1946  0.5735  1.6045  0.1133  0.0179  0.8092  0.7715  0.6035 -0.3070
+  Ridge       0.0436  0.2241  0.1947  0.5735  1.6053  0.1131  0.0180  0.8282  0.7908  0.6027 -0.3070
+  LightGBM    0.0343  0.1749  0.1963  0.6176  1.6188  0.1102  0.0206  0.7660  0.7409  0.7886 -0.2389
+  NN          0.0183  0.1954  0.0939  0.5000  0.7744  0.4414 -0.0111  0.2741  0.2015  0.7859 -0.3921
+
+── PAIRWISE PAIRED T-TESTS ───────────────────────────
+  Ridge vs OLS: t=+1.1242, p=0.2650 [no]
+  LightGBM vs Ridge: t=-0.4317, p=0.6673 [no]
+  NN vs LightGBM: t=-0.8710, p=0.3868 [no]
+
+── MULTIPLE TESTING AWARENESS ────────────────────────
+  Models compared: 4
+  Best model: Ridge (gross Sharpe = 0.8282)
+  Deflated Sharpe Ratio probability: 1.0000
+  Best SR survives deflation (DSR > 0.95)
+
+── SANDBOX vs PRODUCTION ─────────────────────────────
+  (a) FEATURE GAP:
+      Sandbox: 18 features
+      Production (GKX 2020): 94 firm characteristics
+      → More features capture richer cross-sectional variation.
+         GKX found ~50% OOS R² improvement going from 10 to 94 features.
+
+  (b) UNIVERSE GAP:
+      Sandbox: ~174 S&P 500 stocks
+      Production (GKX 2020): ~3,000 CRSP stocks
+      → Larger cross-section provides more power to distinguish models
+         and includes less-efficient small/mid-caps where alpha is larger.
+
+  (c) PIT CONTAMINATION:
+      Sandbox: 4 original + 2 new fundamental features use static ratios
+      Production: quarterly filings with proper point-in-time handling
+      → Our fundamental features have look-ahead bias. IC may be inflated
+         for models that rely on fundamentals. Price-derived features are clean.
+
+  (d) SURVIVORSHIP BIAS:
+      Sandbox: current S&P 500 members applied retroactively
+      Production: point-in-time index constituents from CRSP
+      → Survivorship bias inflates returns by ~1-2% annualized (Brown 1992).
+         All models are equally affected, so relative rankings may be valid.
+
+── CIO RECOMMENDATION ────────────────────────────────
+  RECOMMENDATION: The model comparison does NOT support switching
+  from gradient boosted trees to neural networks on this data.
+
+  The IC spread across all 4 models is 0.0253 — within
+  the noise of monthly IC estimation (SE ~0.02). No pairwise comparison
+  reaches 5% significance. The best model (Ridge) outperforms
+  the worst (NN) by 0.0253 in IC, but this is not
+  statistically distinguishable from zero.
+
+  The case for neural networks requires: (a) unstructured data inputs
+  (text, images) that GBM cannot natively handle, (b) a substantially
+  larger feature set (94+ characteristics per GKX 2020), or (c) a larger
+  cross-section (~3,000 stocks) where non-linear interactions have more
+  statistical power. On 174 S&P 500 stocks with 18 features, model
+  choice is dominated by noise, not signal.
+
+── NET SHARPE COMPARISON (10 bps one-way) ────────────
+  OLS       : gross=0.8092, net=0.7715, turnover=0.6035
+  Ridge     : gross=0.8282, net=0.7908, turnover=0.6027
+  LightGBM  : gross=0.7660, net=0.7409, turnover=0.7886
+  NN        : gross=0.2741, net=0.2015, turnover=0.7859
+  At least one model shows positive net Sharpe at 10 bps
+
+══ hw/d3_model_comparison ═══════════════════════════
+  n_models: 4
+  feature_cols: 18
+  ── OLS ──
+     mean_ic: 0.0436
+     icir: 0.1946
+     sharpe_gross: 0.8092
+     sharpe_net: 0.7715
+  ── Ridge ──
+     mean_ic: 0.0436
+     icir: 0.1947
+     sharpe_gross: 0.8282
+     sharpe_net: 0.7908
+  ── LightGBM ──
+     mean_ic: 0.0343
+     icir: 0.1963
+     sharpe_gross: 0.7660
+     sharpe_net: 0.7409
+  ── NN ──
+     mean_ic: 0.0183
+     icir: 0.0939
+     sharpe_gross: 0.2741
+     sharpe_net: 0.2015
+  ──
+  deflated_sharpe: 1.0000
+  best_model: Ridge
+  ic_range: 0.0253
+  ── plot: d3_model_comparison.png ──
+     type: 3-panel (IC, ICIR, Sharpe)
+     n_models: 4
+     titles: ['Mean IC (±SE)', 'Information Coefficient IR', 'Sharpe Ratio: Gross vs Net']
+✓ d3_model_comparison: ALL PASSED

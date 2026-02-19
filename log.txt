@@ -1,0 +1,122 @@
+--- Running course/week03_factor_models/code/lecture/s1_capm.py ---
+       Beta  Ann. Alpha (%)     R²
+LLY   0.333          24.047  0.043
+PG    0.377           5.096  0.135
+NEE   0.421           8.614  0.097
+WMT   0.447           8.698  0.140
+KO    0.499           1.402  0.236
+MO    0.523           4.456  0.134
+T     0.524           0.382  0.164
+JNJ   0.531           0.426  0.275
+PFE   0.597          -3.267  0.169
+COST  0.790          12.359  0.371
+XOM   0.911          -3.680  0.282
+JPM   1.118           3.943  0.521
+AAPL  1.169          13.613  0.443
+CAT   1.223           2.845  0.420
+NFLX  1.263          17.748  0.208
+GS    1.350          -0.705  0.562
+BA    1.385          -6.513  0.319
+NVDA  1.718          42.952  0.341
+TSLA  1.926          24.842  0.232
+AMD   2.008          21.848  0.313
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s1_capm.py:89: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+══ lecture/s1_capm ══════════════════════════════════
+  n_stocks: 20
+  beta_range: [0.333, 2.008]
+  median_r_squared: 0.2555
+  r_squared_range: [0.0435, 0.5620]
+  ann_alpha_range: [-6.5%, 43.0%]
+  sml_slope: 22.5165
+  sml_r_squared: 0.5459
+  theoretical_slope: 12.1420
+  n_months: 131
+  ── plot: s1_capm_sml.png ──
+     type: scatter with regression lines
+     n_points: 20
+     x_range: [0.14, 2.20]
+     y_range: [-0.22, 66.86]
+     title: CAPM Security Market Line — Empirical vs. Theoretical
+✓ s1_capm: ALL PASSED
+--- Running course/week03_factor_models/code/lecture/s1_capm.py ---
+       Beta  Ann. Alpha (%)     R²
+LLY   0.333          24.047  0.043
+PG    0.377           5.096  0.135
+NEE   0.421           8.614  0.097
+WMT   0.447           8.698  0.140
+KO    0.499           1.402  0.236
+MO    0.523           4.456  0.134
+T     0.524           0.382  0.164
+JNJ   0.531           0.426  0.275
+PFE   0.597          -3.267  0.169
+COST  0.790          12.359  0.371
+XOM   0.911          -3.680  0.282
+JPM   1.118           3.943  0.521
+AAPL  1.169          13.613  0.443
+CAT   1.223           2.845  0.420
+NFLX  1.263          17.748  0.208
+GS    1.350          -0.705  0.562
+BA    1.385          -6.513  0.319
+NVDA  1.718          42.952  0.341
+TSLA  1.926          24.842  0.232
+AMD   2.008          21.848  0.313
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s1_capm.py:89: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+══ lecture/s1_capm ══════════════════════════════════
+  n_stocks: 20
+  beta_range: [0.333, 2.008]
+  median_r_squared: 0.2555
+  r_squared_range: [0.0435, 0.5620]
+  ann_alpha_range: [-6.5%, 43.0%]
+  sml_slope: 22.5165
+  sml_r_squared: 0.5459
+  theoretical_slope: 12.1420
+  n_months: 131
+  ── plot: s1_capm_sml.png ──
+     type: scatter with regression lines
+     n_points: 20
+     x_range: [0.14, 2.20]
+     y_range: [-0.22, 66.86]
+     title: CAPM Security Market Line — Empirical vs. Theoretical
+✓ s1_capm: ALL PASSED
+       Beta  Ann. Alpha (%)     R²
+LLY   0.333          24.047  0.043
+PG    0.377           5.096  0.135
+NEE   0.421           8.614  0.097
+WMT   0.447           8.698  0.140
+KO    0.499           1.402  0.236
+MO    0.523           4.456  0.134
+T     0.524           0.382  0.164
+JNJ   0.531           0.426  0.275
+PFE   0.597          -3.267  0.169
+COST  0.790          12.359  0.371
+XOM   0.911          -3.680  0.282
+JPM   1.118           3.943  0.521
+AAPL  1.169          13.613  0.443
+CAT   1.223           2.845  0.420
+NFLX  1.263          17.748  0.208
+GS    1.350          -0.705  0.562
+BA    1.385          -6.513  0.319
+NVDA  1.718          42.952  0.341
+TSLA  1.926          24.842  0.232
+AMD   2.008          21.848  0.313
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s1_capm.py:89: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+══ lecture/s1_capm ══════════════════════════════════
+  n_stocks: 20
+  beta_range: [0.333, 2.008]
+  median_r_squared: 0.2555
+  r_squared_range: [0.0435, 0.5620]
+  ann_alpha_range: [-6.5%, 43.0%]
+  sml_slope: 22.5165
+  sml_r_squared: 0.5459
+  theoretical_slope: 12.1420
+  n_months: 131
+  ── plot: s1_capm_sml.png ──
+     type: scatter with regression lines
+     n_points: 20
+     x_range: [0.14, 2.20]
+     y_range: [-0.22, 66.86]
+     title: CAPM Security Market Line — Empirical vs. Theoretical
+✓ s1_capm: ALL PASSED

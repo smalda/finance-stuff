@@ -1,0 +1,657 @@
+--- Running course/week03_factor_models/code/data_setup.py ---
+============================================================
+Week 3 — Data Setup
+============================================================
+
+============================================================
+Data setup complete.
+  Equity prices: (2767, 179)
+  Monthly returns: (131, 179)
+  FF3 factors: (1194, 4)
+  FF5 factors: (750, 6)
+  FF6 factors: (750, 7)
+  Carhart factors: (1188, 5)
+  Balance sheet: (805, 3)
+  Income stmt: (819, 4)
+  Sectors: 11 unique
+============================================================
+
+--- Running course/week03_factor_models/code/lecture/s1_capm.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s1_capm.py:89: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+       Beta  Ann. Alpha (%)     R²
+LLY   0.333          24.047  0.043
+PG    0.377           5.096  0.135
+NEE   0.421           8.614  0.097
+WMT   0.447           8.698  0.140
+KO    0.499           1.402  0.236
+MO    0.523           4.456  0.134
+T     0.524           0.382  0.164
+JNJ   0.531           0.426  0.275
+PFE   0.597          -3.267  0.169
+COST  0.790          12.359  0.371
+XOM   0.911          -3.680  0.282
+JPM   1.118           3.943  0.521
+AAPL  1.169          13.613  0.443
+CAT   1.223           2.845  0.420
+NFLX  1.263          17.748  0.208
+GS    1.350          -0.705  0.562
+BA    1.385          -6.513  0.319
+NVDA  1.718          42.952  0.341
+TSLA  1.926          24.842  0.232
+AMD   2.008          21.848  0.313
+══ lecture/s1_capm ══════════════════════════════════
+  n_stocks: 20
+  beta_range: [0.333, 2.008]
+  median_r_squared: 0.2555
+  r_squared_range: [0.0435, 0.5620]
+  ann_alpha_range: [-6.5%, 43.0%]
+  sml_slope: 22.5165
+  sml_r_squared: 0.5459
+  theoretical_slope: 12.1420
+  n_months: 131
+  ── plot: s1_capm_sml.png ──
+     type: scatter with regression lines
+     n_points: 20
+     x_range: [0.14, 2.20]
+     y_range: [-0.22, 66.86]
+     title: CAPM Security Market Line — Empirical vs. Theoretical
+✓ s1_capm: ALL PASSED
+
+--- Running course/week03_factor_models/code/lecture/s2_ff3_model.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s2_ff3_model.py:90: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s2_ff3_model.py:112: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+        capm_r2  ff3_r2  r2_improvement
+ticker                                 
+AAPL      0.443   0.517           0.075
+NVDA      0.341   0.411           0.070
+JPM       0.521   0.731           0.209
+XOM       0.282   0.523           0.241
+JNJ       0.275   0.326           0.052
+KO        0.236   0.410           0.174
+TSLA      0.232   0.302           0.071
+PG        0.135   0.282           0.147
+GS        0.562   0.681           0.119
+AMD       0.313   0.345           0.032
+NEE       0.097   0.135           0.038
+PFE       0.169   0.188           0.019
+CAT       0.420   0.491           0.072
+COST      0.371   0.471           0.100
+NFLX      0.208   0.294           0.086
+
+Alpha shrank (|FF3 alpha| < |CAPM alpha|) for 60% of stocks
+══ lecture/s2_ff3_model ═════════════════════════════
+  n_stocks: 15
+  median_capm_r2: 0.2821
+  median_ff3_r2: 0.4100
+  median_r2_improvement: 0.0746
+  pct_r2_improved: 1.00
+  pct_alpha_shrank: 0.60
+  hml_cumulative_2014_2024: 0.7673
+  ── plot: s2_cumulative_factors.png ──
+     type: multi-line cumulative returns (log scale)
+     n_lines: 3
+     y_range: [0.24, 1035.57]
+     title: Cumulative Factor Returns (1926-2025)
+  ── plot: s2_factor_loadings.png ──
+     type: heatmap of factor loadings
+     shape: (15, 2)
+     title: FF3 Factor Loadings
+✓ s2_ff3_model: ALL PASSED
+
+--- Running course/week03_factor_models/code/lecture/s3_factor_construction.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s3_factor_construction.py:185: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+B/M computed for 171 tickers
+B/M range: [0.0027, 1.7007]
+B/M median: 0.2094
+
+Portfolio counts:
+portfolio
+B/H    19
+B/L    34
+B/M    33
+S/H    33
+S/L    18
+S/M    34
+
+Self-built factor returns: 131 months
+SMB mean: -0.006479, std: 0.024254
+HML mean: -0.010205, std: 0.039227
+
+Validation against Ken French (131 months):
+  SMB correlation: 0.1870
+  HML correlation: 0.8206
+  SMB tracking error (ann.): 0.1157
+  HML tracking error (ann.): 0.0792
+══ lecture/s3_factor_construction ═══════════════════
+  n_tickers_with_bm: 171
+  bm_median: 0.2094
+  bm_range: [0.0027, 1.7007]
+  portfolio_counts: {'B/H': 19, 'B/L': 34, 'B/M': 33, 'S/H': 33, 'S/L': 18, 'S/M': 34}
+  n_factor_months: 131
+  smb_mean: -0.006479
+  smb_std: 0.024254
+  hml_mean: -0.010205
+  hml_std: 0.039227
+  smb_kf_corr: 0.1870
+  hml_kf_corr: 0.8206
+  smb_tracking_error_ann: 0.1157
+  hml_tracking_error_ann: 0.0792
+  ── plot: s3_factor_comparison.png ──
+     type: dual cumulative return comparison
+     n_lines_per_panel: 2
+     title_left: SMB: Self-Built vs. Official (r=0.19)
+     title_right: HML: Self-Built vs. Official (r=0.82)
+✓ s3_factor_construction: ALL PASSED
+
+--- Running course/week03_factor_models/code/lecture/s4_ff5_momentum.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s4_ff5_momentum.py:98: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s4_ff5_momentum.py:117: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+        ff3_r2  ff5_r2  r2_gain
+ticker                         
+AAPL    0.5171  0.5423   0.0252
+NVDA    0.4110  0.4326   0.0216
+JPM     0.7307  0.7722   0.0416
+XOM     0.5234  0.5485   0.0250
+JNJ     0.3264  0.4111   0.0847
+KO      0.4100  0.4244   0.0144
+TSLA    0.3022  0.3028   0.0005
+PG      0.2818  0.4369   0.1550
+GS      0.6813  0.6993   0.0180
+AMD     0.3447  0.3503   0.0057
+NEE     0.1347  0.1599   0.0252
+PFE     0.1876  0.2987   0.1110
+CAT     0.4911  0.5075   0.0164
+COST    0.4711  0.5003   0.0292
+NFLX    0.2937  0.4043   0.1106
+
+Median FF3 R²: 0.4100
+Median FF5 R²: 0.4326
+Median R² gain (FF3→FF5): 0.0252
+Stocks improved: 100%
+Alpha shrank (FF3→FF5): 40%
+══ lecture/s4_ff5_momentum ══════════════════════════
+  n_stocks: 15
+  median_ff3_r2: 0.4100
+  median_ff5_r2: 0.4326
+  median_r2_gain: 0.0252
+  pct_ff5_improved: 1.00
+  pct_alpha_shrank: 0.40
+  umd_hml_corr: -0.3080
+  ── plot: s4_factor_correlation.png ──
+     type: correlation heatmap
+     shape: (6, 6)
+     title: Factor Correlation Matrix (2014-2024)
+  ── plot: s4_momentum_cumulative.png ──
+     type: cumulative return (log scale)
+     n_lines: 1
+     y_range: [0.82, 85.59]
+     title: Momentum (UMD) Cumulative Returns — Strong Growth, Crash Risk
+✓ s4_ff5_momentum: ALL PASSED
+
+--- Running course/week03_factor_models/code/lecture/s5_fama_macbeth.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s5_fama_macbeth.py:156: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Betas estimated for 179 stocks
+       beta_mkt  beta_smb  beta_hml
+count  179.0000  179.0000  179.0000
+mean     0.9699   -0.0504    0.2073
+std      0.3827    0.3088    0.5635
+min      0.3109   -0.6676   -1.1488
+25%      0.6772   -0.2992   -0.0631
+50%      0.9535   -0.0419    0.1088
+75%      1.2397    0.1696    0.4895
+max      2.6353    0.9692    1.8613
+
+Manual Fama-MacBeth risk premia (monthly):
+  gamma_mkt: 0.011389 (t=2.27)
+  gamma_smb: 0.001441 (t=0.44)
+  gamma_hml: -0.008076 (t=-2.04)
+
+Average cross-sectional R²: 0.2017
+
+linearmodels Fama-MacBeth risk premia:
+  beta_mkt: 0.013962 (NW t=4.82)
+  beta_smb: -0.000526 (NW t=-0.14)
+  beta_hml: -0.007982 (NW t=-1.87)
+
+Manual vs. linearmodels gamma comparison:
+  beta_mkt: diff = 0.002573
+  beta_smb: diff = 0.001966
+  beta_hml: diff = 0.000095
+══ lecture/s5_fama_macbeth ══════════════════════════
+  n_stocks: 179
+  n_months: 131
+  gamma_mkt: 0.011389
+  gamma_smb: 0.001441
+  gamma_hml: -0.008076
+  naive_t_mkt: 2.2720
+  naive_t_smb: 0.4352
+  naive_t_hml: -2.0444
+  nw_t_mkt: 4.8166
+  nw_t_smb: -0.1413
+  nw_t_hml: -1.8723
+  avg_cross_r2: 0.2017
+  ── plot: s5_fama_macbeth_gammas.png ──
+     type: bar chart of cross-sectional slopes
+     n_panels: 3
+     title: Fama-MacBeth Cross-Sectional Slopes Over Time
+✓ s5_fama_macbeth: ALL PASSED
+
+--- Running course/week03_factor_models/code/lecture/s6_barra_risk_models.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s6_barra_risk_models.py:253: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Panel shape: (23192, 9)
+Date range: 2014-03-31 00:00:00 to 2024-12-31 00:00:00
+
+Cross-sectional regressions: 48 months
+R² range: [0.1163, 0.6777]
+R² median: 0.3397
+
+Factor return means (monthly):
+log_mcap          0.003426
+book_to_market   -0.001831
+momentum         -0.001026
+volatility        0.003420
+roe              -0.000069
+
+Portfolio risk decomposition (20 stocks):
+  R² from FF5 regression: 0.8659
+  Total variance: 0.00238618
+  Factor variance: 0.00206623
+  Specific variance: 0.00031996
+  Factor risk share: 86.59%
+  Specific risk share: 13.41%
+══ lecture/s6_barra_risk_models ═════════════════════
+  n_regression_months: 48
+  median_cross_r2: 0.3397
+  r2_range: [0.1163, 0.6777]
+  size_factor_mean: 0.003426
+  momentum_factor_mean: -0.001026
+  portfolio_tickers: 20
+  factor_risk_share: 0.8659
+  specific_risk_share: 0.1341
+  ── plot: s6_barra_risk.png ──
+     type: bar chart + pie chart
+     n_panels: 2
+     title_left: Cross-Sectional R² by Month
+     title_right: Portfolio Risk Decomposition
+(20 stocks)
+✓ s6_barra_risk_models: ALL PASSED
+
+--- Running course/week03_factor_models/code/lecture/s7_feature_engineering.py ---
+[CORRECTED — pe_ratio dropped, z-scores clipped at ±3.0]
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/lecture/s7_feature_engineering.py:232: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Fundamental features computed for 179 tickers
+Non-null counts:
+  earnings_yield: 100.0%
+  pb_ratio: 93.9%
+  book_to_market: 93.9%
+  roe: 93.9%
+  asset_growth: 100.0%
+
+Raw feature panel shape: (23192, 8)
+
+Standardized feature matrix shape: (23192, 16)
+Z-score columns: ['momentum_z', 'reversal_z', 'volatility_z', 'earnings_yield_z', 'pb_ratio_z', 'book_to_market_z', 'roe_z', 'asset_growth_z']
+
+Z-score verification (first 12 months):
+  Mean range: [-0.0360, 0.0368]
+  Std range: [0.8432, 1.0000]
+══ lecture/s7_feature_engineering ═══════════════════
+  n_tickers_with_features: 179
+  panel_rows: 23192
+  n_feature_columns: 8
+  n_z_columns: 8
+  z_mean_range: [-0.0360, 0.0368]
+  z_std_range: [0.8432, 1.0000]
+  max_abs_z: 3.0000
+  momentum_reversal_corr: 0.0300
+  ── plot: s7_feature_correlation.png ──
+     type: correlation heatmap
+     shape: (8, 8)
+     title: Average Feature Correlation Matrix (Cross-Sectional)
+✓ s7_feature_engineering: ALL PASSED
+
+--- Running course/week03_factor_models/code/seminar/ex1_replicate_ff.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/seminar/ex1_replicate_ff.py:195: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Tickers with B/M: 171
+
+Factor Replication Results:
+Factor       Corr   TE (ann)   N months
+----------------------------------------
+SMB        0.1870     0.1157        131
+HML        0.8206     0.0792        131
+MOM        0.8460     0.0817        130
+══ seminar/ex1_replicate_ff ═════════════════════════
+  smb_corr: 0.1870
+  hml_corr: 0.8206
+  mom_corr: 0.8460
+  smb_te_ann: 0.1157
+  hml_te_ann: 0.0792
+  mom_te_ann: 0.0817
+  n_months_smb: 131
+  n_months_mom: 130
+  ── plot: ex1_factor_replication.png ──
+     type: triple cumulative return comparison
+     n_panels: 3
+     title_SMB: SMB (r=0.19)
+     title_HML: HML (r=0.82)
+     title_MOM: MOM (r=0.85)
+✓ ex1_replicate_ff: ALL PASSED
+
+--- Running course/week03_factor_models/code/seminar/ex2_factor_premia.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/seminar/ex2_factor_premia.py:205: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Rolling beta panel: (71, 179)
+Fundamental chars: (179, 3)
+  log_mcap non-null: 179
+  bm non-null: 168
+  profitability non-null: 168
+
+Panel shape: (12671, 6)
+Clean panel: (11890, 6)
+
+Fama-MacBeth Risk Premia:
+Factor                Gamma  NW t-stat    p-value
+--------------------------------------------------
+beta               0.006364       2.46     0.0138 *
+log_mcap           0.002398       1.70     0.0887 
+bm                -0.002221      -1.66     0.0978 
+profitability     -0.000155      -0.40     0.6855 
+momentum           0.001808       0.81     0.4161 
+══ seminar/ex2_factor_premia ════════════════════════
+  panel_size: 11890
+  n_months: 71
+  gamma_beta: 0.006364 (NW t=2.46, p=0.0138)
+  gamma_log_mcap: 0.002398 (NW t=1.70, p=0.0887)
+  gamma_bm: -0.002221 (NW t=-1.66, p=0.0978)
+  gamma_profitability: -0.000155 (NW t=-0.40, p=0.6855)
+  gamma_momentum: 0.001808 (NW t=0.81, p=0.4161)
+  n_significant: 1
+  n_insignificant: 4
+  ── plot: ex2_factor_premia.png ──
+     type: bar chart of t-statistics
+     n_bars: 5
+     title: Fama-MacBeth t-Statistics — Which Factors Are Priced?
+✓ ex2_factor_premia: ALL PASSED
+
+--- Running course/week03_factor_models/code/seminar/ex3_portfolio_risk.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/seminar/ex3_portfolio_risk.py:122: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Diversified portfolio: 20 stocks across 10 sectors
+Concentrated portfolio: 20 tech stocks
+
+Diversified (20 stocks):
+  R²: 0.8897
+  Factor risk share: 88.97%
+  Specific risk share: 11.03%
+  Factor loadings:
+    Mkt-RF: 1.1073 (t=28.90)
+    SMB: 0.0002 (t=0.00)
+    HML: 0.0629 (t=1.02)
+    RMW: 0.1127 (t=1.30)
+    CMA: 0.3210 (t=3.42)
+
+Concentrated (Tech):
+  R²: 0.8099
+  Factor risk share: 80.99%
+  Specific risk share: 19.01%
+  Factor loadings:
+    Mkt-RF: 1.2323 (t=19.97)
+    SMB: -0.1025 (t=-0.95)
+    HML: -0.1470 (t=-1.48)
+    RMW: 0.0218 (t=0.16)
+    CMA: -0.3390 (t=-2.24)
+══ seminar/ex3_portfolio_risk ═══════════════════════
+  diversified_n: 20
+  concentrated_n: 20
+  div_factor_share: 0.8897
+  div_specific_share: 0.1103
+  conc_factor_share: 0.8099
+  conc_specific_share: 0.1901
+  factor_share_diff_pp: 7.98
+  ── plot: ex3_portfolio_risk.png ──
+     type: pie charts + bar chart
+     n_panels: 3
+     title_left: Diversified (20 stocks)
+(R²=0.890)
+     title_right: Factor Loadings Comparison
+✓ ex3_portfolio_risk: ALL PASSED
+
+--- Running course/week03_factor_models/code/seminar/ex4_factor_zoo.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/seminar/ex4_factor_zoo.py:275: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Panel shape: (23192, 11)
+
+Univariate Fama-MacBeth Results (sorted by p-value):
+                 gamma   t_stat  p_value  n_months
+reversal        0.0671  36.5782   0.0000     130.0
+asset_growth    0.0021   3.2215   0.0016     130.0
+book_to_market -0.0028  -2.8437   0.0052     130.0
+noise_1         0.0011   2.6944   0.0080     130.0
+noise_3         0.0004   0.9893   0.3244     130.0
+momentum        0.0014   0.8441   0.4002     130.0
+profitability  -0.0003  -0.8070   0.4212     130.0
+noise_2        -0.0004  -0.7038   0.4829     130.0
+noise_4        -0.0003  -0.5910   0.5555     130.0
+earnings_yield -0.0004  -0.4561   0.6491     130.0
+
+Multiple Testing Correction Summary:
+  Naive (p < 0.05):         4 / 10 significant
+  Bonferroni (p < 0.005):   2 / 10 significant
+  Benjamini-Hochberg (FDR): 4 / 10 significant
+  HLZ (|t| > 3.0):         2 / 10 significant
+  Noise factors naive sig:  1 / 4
+  Noise factors Bonf sig:   0 / 4
+══ seminar/ex4_factor_zoo ═══════════════════════════
+  n_characteristics: 10
+  n_noise: 4
+  naive_significant: 4
+  bonferroni_significant: 2
+  bh_significant: 4
+  hlz_significant: 2
+  noise_naive_sig: 1
+  noise_bonf_sig: 0
+  drop_naive_to_bonf: 0.50
+  momentum: t=0.84, p=0.4002
+  book_to_market: t=-2.84, p=0.0052
+  profitability: t=-0.81, p=0.4212
+  asset_growth: t=3.22, p=0.0016
+  reversal: t=36.58, p=0.0000
+  earnings_yield: t=-0.46, p=0.6491
+  noise_1: t=2.69, p=0.0080
+  noise_2: t=-0.70, p=0.4829
+  noise_3: t=0.99, p=0.3244
+  noise_4: t=-0.59, p=0.5555
+  ── plot: ex4_factor_zoo.png ──
+     type: horizontal bar + comparison bar
+     n_panels: 2
+     title_left: Fama-MacBeth t-Statistics by Characteristic
+     title_right: How Many Factors Survive Correction?
+✓ ex4_factor_zoo: ALL PASSED
+
+--- Running course/week03_factor_models/code/hw/d1_factor_factory.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/hw/d1_factor_factory.py:390: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Factor returns shape: (131, 6)
+
+Factor return statistics (monthly):
+           Mkt-RF         SMB         HML         RMW         CMA         MOM
+count  131.000000  131.000000  131.000000  131.000000  131.000000  130.000000
+mean     0.020650   -0.008071   -0.009851    0.005027   -0.005901    0.005501
+std      0.050773    0.028425    0.038610    0.027440    0.022774    0.055965
+min     -0.117598   -0.104916   -0.117436   -0.067232   -0.080548   -0.179943
+25%     -0.006789   -0.022382   -0.033593   -0.013381   -0.019936   -0.027192
+50%      0.027906   -0.008658   -0.013154    0.005565   -0.006712    0.005766
+75%      0.053352    0.011913    0.010406    0.022435    0.009941    0.040643
+max      0.151210    0.066519    0.133337    0.088527    0.063681    0.143154
+
+Validation Against Official Data:
+Factor       Corr   TE (ann)   N months
+----------------------------------------
+SMB        0.3289     0.1170        131
+HML        0.8264     0.0771        131
+RMW        0.3522     0.0965        131
+CMA        0.2862     0.0945        131
+MOM        0.6395     0.1495        130
+
+Quality Report:
+  Missing equity: 11 tickers
+  Missing income: 0 tickers
+  Net Income fallback: 15 tickers
+  Portfolio counts:
+    HML: {'S/0': 21, 'S/1': 27, 'S/2': 36, 'B/0': 35, 'B/1': 29, 'B/2': 20}
+    RMW: {'S/0': 27, 'S/1': 32, 'S/2': 25, 'B/0': 29, 'B/1': 24, 'B/2': 31}
+    CMA: {'S/0': 34, 'S/1': 27, 'S/2': 23, 'B/0': 22, 'B/1': 29, 'B/2': 33}
+══ hw/d1_factor_factory ═════════════════════════════
+  factor_returns_shape: (131, 6)
+  n_tickers_processed: 168
+  mom_n_months: 130
+  SMB_corr: 0.3289
+  SMB_te: 0.1170
+  HML_corr: 0.8264
+  HML_te: 0.0771
+  RMW_corr: 0.3522
+  RMW_te: 0.0965
+  CMA_corr: 0.2862
+  CMA_te: 0.0945
+  MOM_corr: 0.6395
+  MOM_te: 0.1495
+  missing_equity: 11
+  net_income_fallback: 15
+  ── plot: d1_factor_cumulative.png ──
+     type: multi-line cumulative returns
+     n_lines: 7
+     y_range: [-0.36, 12.96]
+     title: Self-Built Factor Cumulative Returns
+✓ d1_factor_factory: ALL PASSED
+
+--- Running course/week03_factor_models/code/hw/d2_feature_matrix.py ---
+[CORRECTED — pe_ratio dropped from FeatureEngineer, z-scores clipped at ±3.0]
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/hw/d2_feature_matrix.py:313: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Feature matrix shape: (23192, 21)
+Columns: ['momentum', 'reversal', 'volatility', 'pb_ratio', 'roe', 'asset_growth', 'earnings_yield', 'pb_ratio_z', 'pb_ratio_rank', 'roe_z', 'roe_rank', 'asset_growth_z', 'asset_growth_rank', 'earnings_yield_z', 'earnings_yield_rank', 'momentum_z', 'momentum_rank', 'reversal_z', 'reversal_rank', 'volatility_z', 'volatility_rank']
+
+Missing Data Report:
+  pb_ratio: 6.2% missing (21762 non-null)
+  roe: 6.2% missing (21762 non-null)
+  asset_growth: 0.0% missing (23192 non-null)
+  earnings_yield: 0.0% missing (23192 non-null)
+  momentum: 0.1% missing (23170 non-null)
+  reversal: 0.0% missing (23192 non-null)
+  volatility: 0.0% missing (23192 non-null)
+
+Worst monthly missing rates:
+  pb_ratio: 6.2%
+  roe: 6.2%
+  asset_growth: 0.0%
+  earnings_yield: 0.0%
+  momentum: 0.6%
+  reversal: 0.0%
+  volatility: 0.0%
+
+Z-score verification (first 12 months):
+  Mean range: [-0.0360, 0.0368]
+  Std range: [0.8432, 1.0000]
+
+ML-ready matrix shape: (23192, 7)
+Columns: ['pb_ratio_z', 'roe_z', 'asset_growth_z', 'earnings_yield_z', 'momentum_z', 'reversal_z', 'volatility_z']
+Saved to: /Users/dasmal/finance_stuff/course/week03_factor_models/code/.cache/feature_matrix_ml.parquet
+══ hw/d2_feature_matrix ═════════════════════════════
+  feature_matrix_shape: (23192, 21)
+  ml_matrix_shape: (23192, 7)
+  n_tickers: 179
+  n_months: 130
+  n_fund_features: 4
+  n_tech_features: 3
+  n_z_columns: 7
+  n_rank_columns: 7
+  z_mean_range: [-0.0360, 0.0368]
+  z_std_range: [0.8432, 1.0000]
+  ── plot: d2_feature_distributions.png ──
+     type: histogram grid
+     n_panels: 7
+     title: Feature Distributions (Z-scored)
+✓ d2_feature_matrix: ALL PASSED
+
+--- Running course/week03_factor_models/code/hw/d3_horse_race.py ---
+/Users/dasmal/finance_stuff/course/week03_factor_models/code/hw/d3_horse_race.py:277: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Rolling beta panel: (71, 179)
+Fundamental characteristics: (179, 4)
+
+CAPM (12671 obs, 71 months):
+  Avg cross-sectional R²: 0.0859
+  Avg |residual|: 0.050485
+  beta: gamma=0.005913, NW t=2.51, p=0.0122
+
+FF3 (11890 obs, 71 months):
+  Avg cross-sectional R²: 0.1393
+  Avg |residual|: 0.049519
+  beta: gamma=0.005819, NW t=2.31, p=0.0211
+  log_mcap: gamma=0.003144, NW t=2.22, p=0.0263
+  bm: gamma=-0.002585, NW t=-1.74, p=0.0817
+
+FF5 (11890 obs, 71 months):
+  Avg cross-sectional R²: 0.1533
+  Avg |residual|: 0.049089
+  beta: gamma=0.005558, NW t=2.37, p=0.0179
+  log_mcap: gamma=0.002871, NW t=1.99, p=0.0468
+  bm: gamma=-0.002665, NW t=-1.74, p=0.0827
+  profitability: gamma=-0.000160, NW t=-0.43, p=0.6688
+  investment: gamma=0.001789, NW t=2.41, p=0.0159
+
+R² Progression:
+  CAPM: R² = 0.0859, |resid| = 0.050485
+  FF3: R² = 0.1393, |resid| = 0.049519
+  FF5: R² = 0.1533, |resid| = 0.049089
+══ hw/d3_horse_race ═════════════════════════════════
+  r2_capm: 0.0859
+  r2_ff3: 0.1393
+  r2_ff5: 0.1533
+  r2_improvement_capm_to_ff3: 0.0535
+  r2_improvement_ff3_to_ff5: 0.0139
+  avg_abs_residual_capm: 0.050485
+  avg_abs_residual_ff3: 0.049519
+  avg_abs_residual_ff5: 0.049089
+  n_ff5_significant: 2
+  CAPM_beta: t=2.51, p=0.0122
+  FF3_beta: t=2.31, p=0.0211
+  FF3_log_mcap: t=2.22, p=0.0263
+  FF3_bm: t=-1.74, p=0.0817
+  FF5_beta: t=2.37, p=0.0179
+  FF5_log_mcap: t=1.99, p=0.0468
+  FF5_bm: t=-1.74, p=0.0827
+  FF5_profitability: t=-0.43, p=0.6688
+  FF5_investment: t=2.41, p=0.0159
+  ── plot: d3_horse_race.png ──
+     type: triple bar chart comparison
+     n_panels: 3
+     title: Factor Model Horse Race: CAPM vs. FF3 vs. FF5
+✓ d3_horse_race: ALL PASSED
+
+============================================================
+Week 3 — Data Setup
+============================================================
+
+============================================================
+Data setup complete.
+  Equity prices: (2767, 179)
+  Monthly returns: (131, 179)
+  FF3 factors: (1194, 4)
+  FF5 factors: (750, 6)
+  FF6 factors: (750, 7)
+  Carhart factors: (1188, 5)
+  Balance sheet: (805, 3)
+  Income stmt: (819, 4)
+  Sectors: 11 unique
+============================================================

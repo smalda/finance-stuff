@@ -1,0 +1,878 @@
+--- data_setup ---
+============================================================
+Week 5 — Data Setup
+============================================================
+
+[1/6] Monthly equity prices
+  Shape: 168 months × 449 tickers
+  Date range: 2012-01-31 to 2025-12-31
+  Missing values: 0.1% overall
+
+[2/6] Daily OHLCV (for transaction cost estimation)
+  Shape: 3520 days × 449 tickers × 5 fields
+  Date range: 2012-01-03 to 2025-12-31
+  High/Low coverage (Corwin-Schultz feasibility): 99.9%
+
+[3/6] Fama-French 3 factors (monthly)
+  Shape: (168, 4)
+  Date range: 2012-01-31 to 2025-12-31
+  Columns: ['Mkt-RF', 'SMB', 'HML', 'RF']
+
+[4/6] Market-cap tier assignments
+  Tier distribution: {'large': 150, 'small': 150, 'mid': 149}
+
+[5/6] Alpha model predictions
+  Model: gbm_week4
+  Week 4 cache available: True
+  OOS months: 68 (2019-04-30 to 2024-11-30)
+  OOS tickers: 174
+  IC: mean=0.0460, std=0.1759
+  NN model also available: IC mean=0.0456
+
+[6/6] Long-short portfolio construction
+  Gross annualized return: 17.44%
+  Gross annualized Sharpe: 0.876
+  Max drawdown: -31.88%
+  Mean one-way monthly turnover: 139.9%
+  ⚠ HIGH TURNOVER: 140% one-way — TC drag ≈ 3.36%/year at 10 bps
+
+============================================================
+DATA QUALITY SUMMARY
+============================================================
+  Panel: 449 stocks × 168 monthly periods
+  Missing values: 0.1% overall
+  Universe coverage: min 439 stocks, max 449 stocks
+  Universe: current S&P 500 — subject to survivorship bias. Returns inflated by estimated 1–4% annually.
+  OOS period: 68 months (2019-04-30 to 2024-11-30)
+  Week 4 dependency: SATISFIED
+
+Data setup complete. All caches written to:
+  /Users/dasmal/finance_stuff/course/week05_backtesting_txcosts/code/.cache
+
+Exports available to section files:
+  TICKERS, START, END, CACHE_DIR, PLOT_DIR, WEEK4_AVAILABLE, COST_BPS
+  load_equity_data()    → monthly prices (months × tickers)
+  load_ohlcv_data()     → daily OHLCV (MultiIndex)
+  load_ff3()            → FF3 factors (months × factors)
+  load_mcap_tiers()     → market-cap tier per ticker
+  load_alpha_output()   → predictions, IC series, model variants
+  load_ls_portfolio()   → weights, gross_returns, turnover
+  load_monthly_returns()→ monthly simple returns (months × tickers)
+
+--- s1_seven_sins ---
+── Data Quality ──────────────────────────────────────────────────
+  N_stocks:          449
+  N_periods:         167 monthly observations
+  Missing (prices):  0.0862%
+  Present at start:  439 / 449 tickers
+  Survivorship note: S&P 500 universe = current constituents only.
+                     Delisted stocks not in dataset — bias understated.
+
+  Flawed signal OOS IC:    1.0000  ← signal == outcome
+  Corrected signal OOS IC: -0.0133
+  Flawed ann. return:    398.74%
+  Corrected ann. return: -1.76%
+  Annual return gap:     400.50%
+  Survivor EW annual return:     15.5207%
+  Sim unbiased EW annual return: 12.4480%
+  Survivorship premium:          3.0727% annualized
+  (Simulates 5%/yr churn, -50% delist return — consistent with historical estimates)
+══ lecture/s1_seven_sins ════════════════════════════════════
+  n_stocks:                 449
+  n_periods:                167
+  missing_pct_prices:       0.000862
+  n_survivors_strict:       439
+  mean_flawed_ic_oos:       1.0000
+  mean_corrected_ic_oos:    -0.0133
+  ann_flawed_return:        3.9874
+  ann_corrected_return:     -0.0176
+  annual_gap:               4.0050
+  ann_survivors_return:     0.155207
+  ann_all_return:           0.124480
+  survivorship_premium:     0.030727
+  ── plot: s1_equity_curves.png ──
+     type: line chart (cumulative returns, flawed vs corrected)
+     n_lines: 3
+     y_range: [0.15, 87929901433.34]
+     title: Equity Curve: Flawed vs. Corrected Signal (OOS 2018–2024, log scale)
+  ── plot: s1_survivorship_bar.png ──
+     type: bar chart (annualized return: all vs survivors)
+     n_bars: 2
+     y_range: [0.00, 16.30]
+     title: Survivorship Bias: EW Annual Return OOS 2018–2024
+(Simulated 5%/yr churn, -50% delist return)
+✓ s1_seven_sins: ALL PASSED
+
+--- s2_purged_cv ---
+  WF fold 1/10: test=2019-12-31–2020-05-31, IC=0.1256
+  WF fold 2/10: test=2020-06-30–2020-11-30, IC=-0.0253
+  WF fold 3/10: test=2020-12-31–2021-05-31, IC=0.0356
+  WF fold 4/10: test=2021-06-30–2021-11-30, IC=0.0589
+  WF fold 5/10: test=2021-12-31–2022-05-31, IC=-0.1491
+  WF fold 6/10: test=2022-06-30–2022-11-30, IC=-0.0140
+  WF fold 7/10: test=2022-12-31–2023-05-31, IC=0.1239
+  WF fold 8/10: test=2023-06-30–2023-11-30, IC=-0.0319
+  WF fold 9/10: test=2023-12-31–2024-05-31, IC=0.0819
+  WF fold 10/10: test=2024-06-30–2024-11-30, IC=-0.0030
+  Walk-forward mean CV IC: 0.0203
+  PKF fold 1/10: train=1 obs, purge=1 obs, test=2019-06-30–2019-11-30, IC=0.0504
+  PKF fold 2/10: train=7 obs, purge=1 obs, test=2019-12-31–2020-05-31, IC=0.1256
+  PKF fold 3/10: train=13 obs, purge=1 obs, test=2020-06-30–2020-11-30, IC=-0.0253
+  PKF fold 4/10: train=19 obs, purge=1 obs, test=2020-12-31–2021-05-31, IC=0.0356
+  PKF fold 5/10: train=25 obs, purge=1 obs, test=2021-06-30–2021-11-30, IC=0.0589
+  PKF fold 6/10: train=31 obs, purge=1 obs, test=2021-12-31–2022-05-31, IC=-0.1491
+  PKF fold 7/10: train=37 obs, purge=1 obs, test=2022-06-30–2022-11-30, IC=-0.0140
+  PKF fold 8/10: train=43 obs, purge=1 obs, test=2022-12-31–2023-05-31, IC=0.1239
+  PKF fold 9/10: train=49 obs, purge=1 obs, test=2023-06-30–2023-11-30, IC=-0.0319
+  PKF fold 10/10: train=55 obs, purge=1 obs, test=2023-12-31–2024-11-30, IC=0.0395
+  Purged KFold mean CV IC: 0.0213
+  IC delta (WF − purged): -0.0011
+  NOTE: IC delta < 0.005 — purging effect modest on monthly data (label duration ≈ fold size). Effect is structural, not a bug.
+⚠ S2-2: Purged IC (0.0213) > WF IC (0.0203). On monthly data with 1-month labels, WF and PKF cover different date windows (PKF starts earlier); IC ordering reflects date coverage rather than leakage. Effect is structurally expected to be near zero.
+⚠ S2-3: IC delta = -0.0011 < 0.005. On monthly data with 1-month labels, purging removes only 1 obs per fold boundary — effect is inherently modest.
+══ lecture/s2_purged_cv ══════════════════════════════════
+  n_oos_months: 68
+  k_folds: 10
+  label_duration_months: 1
+  embargo_months: 1
+  wf_mean_cv_ic: 0.0203
+  purged_mean_cv_ic: 0.0213
+  ic_delta_wf_minus_purged: -0.0011
+  pkf_n_splits_actual: 10
+  wf_ic_per_fold: [0.1256, -0.0253, 0.0356, 0.0589, -0.1491, -0.014, 0.1239, -0.0319, 0.0819, -0.003]
+  purged_ic_per_fold: [0.0504, 0.1256, -0.0253, 0.0356, 0.0589, -0.1491, -0.014, 0.1239, -0.0319, 0.0395]
+  ── plot: s2_split_visualization.png ──
+     type: split timeline heatmap (train/test/purged/embargo)
+     n_folds: 10
+     x_range: [0, 68] (month indices)
+     title: Purged K-Fold Splits: Train / Test / Purged / Embargo Zones
+  ── plot: s2_ic_comparison.png ──
+     type: line chart — WF vs. Purged IC per fold
+     n_lines: 2
+     y_range: [-0.163, 0.139]
+     title: Cross-Validation IC by Fold: Walk-Forward vs. Purged KFold
+✓ s2_purged_cv: ALL PASSED
+
+--- s4_transaction_costs ---
+Mean one-way monthly turnover: 139.9%
+Max one-way monthly turnover:  194.1%
+⚠ HIGH TURNOVER: 140% one-way — TC drag ≈ 1.68%/year at 5 bps (optimistic)
+Computing market impact costs from OHLCV data...
+Mean monthly market impact cost: 0.0851%
+══ lecture/s4_transaction_costs ════════════════════════
+  n_periods: 67
+  mean_monthly_turnover: 1.3987
+  max_monthly_turnover: 1.9412
+  spread_drag_fixed_annual: 0.0168
+  mean_monthly_impact: 0.000851
+  annual_spread_cost_pct: 1.6785
+  annual_impact_cost_pct: 1.0209
+  gross_sharpe: 0.8713
+  net_sharpe_fixed_5bps: 0.7877
+  net_sharpe_tiered: 0.6243
+  gross_max_drawdown: -0.3188
+  net_max_drawdown: -0.3280
+  gross_skewness: -0.2607
+  gross_excess_kurtosis: 4.1260
+  net_skewness: -0.2582
+  net_excess_kurtosis: 4.1186
+  cum_return_zero: 2.3601
+  cum_return_fixed: 2.1511
+  cum_return_tiered: 1.7943
+  high_turnover_warning: TRUE
+  ── plot: s4_equity_curves.png ──
+     type: multi-line cumulative returns (3 TC regimes)
+     n_lines: 3
+     y_range: [1.01, 2.42]
+     title: Transaction Cost Regimes: Cumulative Returns
+  ── plot: s4_tc_decomposition.png ──
+     type: bar chart (spread vs impact cost)
+     n_bars: 2
+     title: Annual TC Decomposition (Average Month × 12)
+  ── plot: s4_impact_participation.png ──
+     type: line chart (market impact vs participation rate)
+     n_lines: 2
+     title: Market Impact vs. Participation Rate (η=0.1, σ=0.018)
+✓ s4_transaction_costs: ALL PASSED
+
+--- s5_deflated_sharpe ---
+Gross return series: 68 months, 2019-04-30 – 2024-11-30
+
+Gross return moments (n=68):
+  Annualised Sharpe:  0.8765
+  Monthly Sharpe:     0.2530
+  Skewness:           -0.2614
+  Excess kurtosis:    4.2317
+  ⚠ Heavy tails / significant skew — non-normality penalises DSR
+
+Probabilistic Sharpe Ratio (M=1, T=68 months):
+  PSR = 1.0000  (using monthly SR=0.2530)
+  Interpretation: 100.0% probability the SR is genuine (single trial)
+
+DSR surface input (Gross (monthly)):
+  Monthly SR = 0.2530, skew = -0.2614, excess kurt = 4.2317
+
+DSR surface (rows=M, cols=T):
+T (months)    24     36     48     60     84     120
+M (trials)                                          
+1           1.000  1.000  1.000  1.000  1.000  1.000
+5           0.508  0.612  0.695  0.760  0.852  0.929
+10          0.367  0.471  0.560  0.635  0.754  0.867
+20          0.259  0.352  0.438  0.516  0.648  0.790
+50          0.159  0.232  0.305  0.377  0.511  0.675
+
+MinTRL at 95% confidence (M=10 strategies):
+  Observed monthly SR = 0.2530
+  MinTRL = 174 months
+  MinTRL at monthly SR=0.23 (~ann 0.80) = 209 months
+
+DSR surface cached → /Users/dasmal/finance_stuff/course/week05_backtesting_txcosts/code/.cache/dsr_surface.parquet
+
+══ lecture/s5_deflated_sharpe ══════════════════════════
+  sr_label: Gross (monthly)
+  n_months_total: 68
+  gross_sr_annualized: 0.8765
+  gross_sr_monthly: 0.2530
+  surface_sr_monthly: 0.2530
+  skewness: -0.2614
+  excess_kurtosis: 4.2317
+  psr_m1_t68: 1.0000
+  mintrl_test_m10_95pct: 209 months
+  mintrl_observed_sr_m10_95pct: 174 months
+  dsr_t24_m1: 1.0000
+  dsr_t24_m50: 0.1591
+  dsr_t120_m50: 0.6752
+  dsr_range: [0.159, 1.000]
+  monotone_in_M_at_T=48: PASS
+  monotone_in_T_at_M=10: PASS
+  ── plot: s5_dsr_heatmap.png ──
+     type: 2D heatmap DSR surface (M × T)
+     rows: M=[1, 5, 10, 20, 50]
+     cols: T=[24, 36, 48, 60, 84, 120]
+     dsr_range: [0.159, 1.000]
+     title: Deflated Sharpe Ratio Surface  [monthly SR=0.253, Gross (monthly)]
+  ── plot: s5_mintrl_chart.png ──
+     type: line chart MinTRL vs. Sharpe
+     n_sr_values: 46
+     sr_range: [0.05, 0.60]
+     title: MinTRL vs. Monthly Sharpe Ratio at 95% Confidence (M=10)
+✓ s5_deflated_sharpe: ALL PASSED
+
+--- ex1_bug_hunt ---
+Prediction window: 2019-04-30 to 2024-11-30
+Universe: 174 tickers
+IS period:  2019-04-30 to 2021-12-31 (33 months)
+OOS period: 2022-01-31 to 2024-11-30 (35 months)
+
+Signal A (look-ahead bias):
+  IS IC  = 1.0000  (n=33)
+  OOS IC = 0.0155  (n=35)
+  IS/OOS = 64.4×
+
+Signal B (model-universe coupling — NN on survivor universe):
+  IS IC  = 0.0310  (n=33)
+  OOS IC = 0.0173  (n=35)
+  IS/OOS = 1.8×
+
+Signal C (clean ensemble baseline — GBM + NN):
+  IS IC  = 0.0285  (n=33)
+  OOS IC = 0.0177  (n=35)
+  IS/OOS = 1.6×
+
+Signal                        IS IC   OOS IC   IS/OOS  Diagnosis
+------------------------------------------------------------------------
+A (look-ahead)               1.0000   0.0155     64.4×  Dramatic collapse (look-ahead)
+B (survivorship / NN)        0.0310   0.0173      1.8×  Near-equal inflation (survivorship)
+C (clean ensemble)           0.0285   0.0177      1.6×  Stable (no bias)
+
+══ seminar/ex1_bug_hunt ══════════════════════════════════════
+  n_months_is:   33
+  n_months_oos:  35
+  n_tickers:     174
+  is_end:        2021-12-31
+  --- Signal A (look-ahead) ---
+  A_is_ic:       1.0000
+  A_oos_ic:      0.0155
+  A_ratio:       64.35x
+  --- Signal B (survivorship / NN) ---
+  B_is_ic:       0.0310
+  B_oos_ic:      0.0173
+  B_ratio:       1.80x
+  --- Signal C (clean ensemble) ---
+  C_is_ic:       0.0285
+  C_oos_ic:      0.0177
+  C_ratio:       1.61x
+  ── plot: ex1_bug_hunt.png ──
+     type: grouped bar (IS vs OOS IC) + IS/OOS ratio bars
+     n_signals: 3
+     left_title:  'IS vs. OOS IC — Diagnostic Fingerprint'
+     right_title: 'IS/OOS Ratio — Bias Severity'
+     y_range_left:  [0.000, 1.050]
+     y_range_right: [0.000, 31.500]
+✓ ex1_bug_hunt: ALL PASSED
+
+--- s3_cpcv_multiple_testing ---
+  GBM OOS dates: 68 months (2019-04-30 – 2024-11-30)
+  NN  OOS dates: 68 months
+Computing Ridge walk-forward predictions...
+  [Ridge 36/129] 2017-03-31
+  [Ridge 48/129] 2018-03-31
+  [Ridge 60/129] 2019-03-31
+  [Ridge 72/129] 2020-03-31
+  [Ridge 84/129] 2021-03-31
+  [Ridge 96/129] 2022-03-31
+  [Ridge 108/129] 2023-03-31
+  [Ridge 120/129] 2024-03-31
+  Ridge OOS dates: 93 months (2017-03-31 – 2024-11-30)
+  Aligned OOS dates (all 3 models): 68 months
+  GBM   : mean_IC=0.0259, t=1.39, p=0.170
+  Ridge : mean_IC=-0.0013, t=-0.06, p=0.954
+  NN    : mean_IC=0.0240, t=1.03, p=0.308
+
+CPCV setup: 68 time points × 3 models
+  Models: ['GBM', 'Ridge', 'NN']
+  CPCV: C(6,2) = 15 paths expected
+
+CPCV complete: 15 paths
+  IS winners by model: {'GBM': 11, 'NN': 4}
+  OOS IC winner: mean=0.0150, std=0.0292
+
+Probability of Backtest Overfitting (PBO)
+  Paths where IS-winner ranks below median OOS: 4/15
+  PBO = 0.2667 (26.7%)
+  PBO in acceptable range [0.20, 0.75] — typical regime variation
+
+Harvey-Liu-Zhu t-stat analysis
+  Model       t-stat   p-value   t>1.96   t>3.00
+  GBM          1.387    0.1700       NO       NO
+  Ridge       -0.058    0.9537       NO       NO
+  NN           1.027    0.3079       NO       NO
+
+  N models passing t > 3.00: 0/3
+  (t > 3.0 recommended for strategies with many trials)
+
+BHY (Benjamini-Hochberg-Yekutieli) Multiple Testing Correction
+  Model        Raw p     BHY p    p≥raw?   Reject?
+  GBM         0.1700    0.4619       YES        NO
+  Ridge       0.9537    0.9537       YES        NO
+  NN          0.3079    0.4619       YES        NO
+
+  50-variant FDR simulation (null: IC ~ N(0, 0.07))
+  False positives at nominal p<0.05: 0/50
+  False positives after BHY correction: 0/50
+
+══ lecture/s3_cpcv_multiple_testing ══════════════════════
+  n_cpcv_paths: 15
+  pbo: 0.2667
+  n_below_median: 4
+  oos_ic_std: 0.0292
+  oos_ic_mean: 0.0150
+  n_models: 3
+  t_stat_GBM: 1.3872
+  t_stat_Ridge: -0.0583
+  t_stat_NN: 1.0274
+  n_passing_t300: 0
+  n_fp_nominal_50variants: 0
+  n_fp_bhy_50variants: 0
+  bhy_inflation_check: all_pass
+  ── plot: s3_cpcv_oos_distribution.png ──
+     type: histogram of OOS IC across 15 CPCV paths
+     n_bars: 15
+     median_oos_ic: 0.0158
+     title: CPCV: OOS IC Distribution for IS-Winner
+  ── plot: s3_pbo_visualization.png ──
+     type: OOS rank distribution with median line
+     pbo: 0.2667
+     title: OOS Rank of IS-Winner Across 15 CPCV Paths (PBO = 0.27)
+  ── plot: s3_hlz_tstat.png ──
+     type: horizontal bar chart of t-stats with HLZ thresholds
+     n_models: 3
+     title: Harvey-Liu-Zhu t-stat: 3 Model Variants
+✓ s3_cpcv_multiple_testing: ALL PASSED
+
+--- s6_responsible_backtest ---
+── IS / OOS BOUNDARY ─────────────────────────────────────────
+  IS period:  pre-April 2019 (model training in Week 4)
+  OOS period: 2019-04-30 to 2024-11-30 (68 months)
+
+── NAIVE EVALUATION (IS label; gross returns; no purging) ────
+  ann_return:      0.1744
+  ann_sharpe:      0.8765
+  max_drawdown:    -0.3188
+  skewness:        -0.2614
+  excess_kurtosis: 4.2317
+  cv_mean_ic:      0.0203  (TimeSeriesSplit, no purging)
+
+── RESPONSIBLE EVALUATION (OOS label; net-tiered; purged CV) ──
+  ann_return:      0.1150
+  ann_sharpe:      0.5749
+  monthly_sharpe:  0.1659
+  max_drawdown:    -0.3508
+  skewness:        -0.2768
+  excess_kurtosis: 4.0565
+  cv_mean_ic:      0.0213  (PurgedKFold)
+  dsr_m10:         0.4135
+  sharpe_gap (naive - resp): 0.3016
+
+── SUB-PERIOD IC SPLIT (OOS stability check) ─────────────────
+  Sub-period 1 (OOS: 2019-04-30 to 2021-11-30):
+    n_months: 32
+    mean_ic:  0.0538  std_ic: 0.1857
+  Sub-period 2 (OOS: 2021-12-31 to 2024-11-30):
+    n_months: 36
+    mean_ic:  0.0390  std_ic: 0.1691
+  IC degradation (sub1 - sub2): 0.0147
+
+══ lecture/s6_responsible_backtest ══════════════════════════
+  naive_sharpe:      0.8765
+  resp_sharpe:       0.5749
+  resp_monthly_sr:   0.1659
+  sharpe_gap:        0.3016
+  naive_ann_ret:     0.1744
+  resp_ann_ret:      0.1150
+  naive_mdd:         -0.3188
+  resp_mdd:          -0.3508
+  naive_skew:        -0.2614
+  naive_excess_kurt: 4.2317
+  resp_skew:         -0.2768
+  resp_excess_kurt:  4.0565
+  wf_cv_mean_ic:     0.0203
+  purged_cv_mean_ic: 0.0213
+  ic_degradation:    0.0147
+  dsr_m10:           0.4135
+  n_oos_months:      68
+  sub1_n:            32
+  sub2_n:            36
+  sub1_mean_ic:      0.0538
+  sub2_mean_ic:      0.0390
+  ── plot: s6_equity_curve_comparison.png ──
+     type: dual cumulative return lines (naive vs. responsible)
+     n_lines: 4
+     y_range: [0.93, 2.46]
+     title: Naive vs. Responsible Equity Curve (IS/OOS labeled)
+  ── plot: s6_ic_bar_comparison.png ──
+     type: grouped bar chart (fold-level IC, WF vs. purged)
+     n_groups: 10
+     y_range: [-0.16, 0.14]
+     title: Fold-Level IC: Walk-Forward vs. Purged CV (OOS folds)
+✓ s6_responsible_backtest: ALL PASSED
+
+--- ex2_purging_comparison ---
+OOS window: 2019-04-30 – 2024-11-30 (68 months)
+CV setup: k=10, label_duration=1m, embargo=1m
+
+--- Walk-Forward CV (TimeSeriesSplit) ---
+  WF fold 1/10: 2019-12-31–2020-05-31, GBM_IC=0.1256
+  WF fold 2/10: 2020-06-30–2020-11-30, GBM_IC=-0.0253
+  WF fold 4/10: 2021-06-30–2021-11-30, GBM_IC=0.0589
+  WF fold 6/10: 2022-06-30–2022-11-30, GBM_IC=-0.0140
+  WF fold 8/10: 2023-06-30–2023-11-30, GBM_IC=-0.0319
+  WF fold 10/10: 2024-06-30–2024-11-30, GBM_IC=-0.0030
+  WF mean GBM IC: 0.0203
+
+--- Purged KFold CV ---
+  PKF fold 1/10: purge=1obs, 2019-06-30–2019-11-30, GBM_IC=0.0504
+  PKF fold 2/10: purge=1obs, 2019-12-31–2020-05-31, GBM_IC=0.1256
+  PKF fold 4/10: purge=1obs, 2020-12-31–2021-05-31, GBM_IC=0.0356
+  PKF fold 6/10: purge=1obs, 2021-12-31–2022-05-31, GBM_IC=-0.1491
+  PKF fold 8/10: purge=1obs, 2022-12-31–2023-05-31, GBM_IC=0.1239
+  PKF fold 10/10: purge=1obs, 2023-12-31–2024-11-30, GBM_IC=0.0395
+  Purged mean GBM IC: 0.0213
+  IC delta (WF − purged): -0.0011
+
+  RANK_FLIP_FOLDS=6/10
+⚠ EX2-2: Purged IC (0.0213) > WF IC (0.0203). On monthly data, PKF covers an earlier slice of the OOS window (different IC regime) rather than the same slice with less leakage. Structural ordering not guaranteed.
+⚠ EX2-3: IC delta = -0.0011 < 0.002. On monthly data with 1-month labels, purging removes 1 obs per fold boundary — leakage premium is inherently modest. This is a structural limitation, not a bug.
+
+  Model variant availability:
+    GBM: available (68 OOS months)
+    NN:  available
+    Ridge: available
+  RANK_FLIP_FOLDS=6/10
+══ seminar/ex2_purging_comparison ═══════════════════════
+  n_oos_months: 68
+  k_folds: 10
+  label_duration_months: 1
+  embargo_months: 1
+  wf_mean_gbm_ic: 0.0203
+  purged_mean_gbm_ic: 0.0213
+  ic_delta_wf_minus_purged: -0.0011
+  wf_gbm_ic_per_fold: [0.1256, -0.0253, 0.0356, 0.0589, -0.1491, -0.014, 0.1239, -0.0319, 0.0819, -0.003]
+  purged_gbm_ic_per_fold: [0.0504, 0.1256, -0.0253, 0.0356, 0.0589, -0.1491, -0.014, 0.1239, -0.0319, 0.0395]
+  wf_mean_nn_ic: 0.0209
+  purged_mean_nn_ic: 0.0270
+  wf_mean_ridge_ic: 0.0247
+  purged_mean_ridge_ic: 0.0477
+  rank_flip_folds: 6
+  total_comparable_folds: 10
+  ── plot: ex2_fold_ic_comparison.png ──
+     type: line chart — WF vs. Purged IC per fold
+     n_lines: 5
+     y_range: [-0.189, 0.193]
+     title: Walk-Forward vs. Purged KFold: Per-Fold IC Comparison
+  ── plot: ex2_rank_flip_heatmap.png ──
+     type: 3-panel rank heatmap (WF ranks | purged ranks | agreement)
+     n_models: 3
+     n_folds: 10
+     title: Model Rank Flip: RANK_FLIP_FOLDS=6/10 across 10 folds
+✓ ex2_purging_comparison: ALL PASSED
+
+--- ex3_tc_sensitivity ---
+Loaded tc_results.parquet: 67 months
+Gross annualized Sharpe: 0.8713
+Mean monthly one-way turnover: 139.9%
+Mean monthly impact cost (fixed baseline): 0.000851
+⚠ HIGH TURNOVER: 140% one-way — TC drag ≈ 3.36%/year at 10 bps
+
+Grid dimensions: 9 spreads × 6 turnover reductions = 54 cells
+Feasibility threshold: net Sharpe ≥ 0.5
+
+Net Sharpe heatmap (rows=half-spread bps, cols=turnover reduction %):
+            0%     10%     20%     30%     40%     50%
+   2 bps: +0.789  +0.792  +0.796  +0.799  +0.802  +0.806  [6/6 feasible]
+   5 bps: +0.739  +0.747  +0.755  +0.764  +0.772  +0.781  [6/6 feasible]
+   8 bps: +0.688  +0.702  +0.715  +0.729  +0.742  +0.755  [6/6 feasible]
+  10 bps: +0.655  +0.672  +0.688  +0.705  +0.722  +0.739  [6/6 feasible]
+  12 bps: +0.621  +0.641  +0.662  +0.682  +0.702  +0.722  [6/6 feasible]
+  15 bps: +0.571  +0.596  +0.621  +0.646  +0.672  +0.697  [6/6 feasible]
+  20 bps: +0.487  +0.521  +0.554  +0.588  +0.621  +0.655  [5/6 feasible]
+  25 bps: +0.403  +0.445  +0.487  +0.529  +0.571  +0.613  [3/6 feasible]
+  30 bps: +0.319  +0.370  +0.420  +0.470  +0.521  +0.571  [2/6 feasible]
+
+Feasibility frontier (max viable half-spread per turnover reduction):
+  0% reduction: max viable half-spread = 15 bps
+  10% reduction: max viable half-spread = 20 bps
+  20% reduction: max viable half-spread = 20 bps
+  30% reduction: max viable half-spread = 25 bps
+  40% reduction: max viable half-spread = 30 bps
+  50% reduction: max viable half-spread = 30 bps
+
+FEASIBLE_CELLS = 46 (of 54 total)
+GROSS_SHARPE = 0.8713
+BREAKEVEN_SPREAD = 15 bps (at 0% turnover reduction, net Sharpe ≥ 0.5)
+
+At 30 bps spread (no reduction):
+  Net Sharpe = 0.3192
+  Gross − Net = 0.5521 (0.55 Sharpe units)
+══ seminar/ex3_tc_sensitivity ════════════════════════════
+  GROSS_SHARPE: 0.8713
+  mean_turnover_pct: 1.3987  (139.9%/month)
+  FEASIBLE_CELLS: 46 (of 54 total, threshold=0.5)
+  BREAKEVEN_SPREAD: 15 bps (0% turnover reduction)
+  net_sharpe_at_30bps_0pct: 0.3192
+  sharpe_drag_at_30bps: 0.5521
+  ── plot: ex3_tc_sensitivity_heatmap.png ──
+     type: 2D heatmap with feasibility contour
+     grid: 9 half-spreads × 6 turnover reductions
+     color_range: [0.0, 1.0] net Sharpe (RdYlGn)
+     contour_threshold: 0.5
+     title: TC Feasibility Frontier — Net Sharpe vs. Cost & Efficiency
+     y_axis: Half-Spread (bps, transaction cost environment)
+     x_axis: Turnover Reduction (execution efficiency gain)
+✓ ex3_tc_sensitivity: ALL PASSED
+
+--- ex4_dsr_calibration ---
+Return series: 68 monthly observations
+Full-series skewness:       -0.2614
+Full-series excess kurtosis:4.2317
+Fixed net SR (annualized):  0.7040
+  T=  6mo, M=  1: SR=0.203, DSR=1.0000 (PASS)
+  T=  6mo, M=  5: SR=0.203, DSR=0.2464 (FAIL)
+  T=  6mo, M= 10: SR=0.203, DSR=0.1489 (FAIL)
+  T=  6mo, M= 20: SR=0.203, DSR=0.0895 (FAIL)
+  T=  6mo, M= 50: SR=0.203, DSR=0.0452 (FAIL)
+  T= 12mo, M=  1: SR=0.203, DSR=1.0000 (PASS)
+  T= 12mo, M=  5: SR=0.203, DSR=0.2973 (FAIL)
+  T= 12mo, M= 10: SR=0.203, DSR=0.1776 (FAIL)
+  T= 12mo, M= 20: SR=0.203, DSR=0.1040 (FAIL)
+  T= 12mo, M= 50: SR=0.203, DSR=0.0500 (FAIL)
+  T= 24mo, M=  1: SR=0.203, DSR=1.0000 (PASS)
+  T= 24mo, M=  5: SR=0.203, DSR=0.4139 (FAIL)
+  T= 24mo, M= 10: SR=0.203, DSR=0.2746 (FAIL)
+  T= 24mo, M= 20: SR=0.203, DSR=0.1776 (FAIL)
+  T= 24mo, M= 50: SR=0.203, DSR=0.0969 (FAIL)
+  T= 36mo, M=  1: SR=0.203, DSR=1.0000 (PASS)
+  T= 36mo, M=  5: SR=0.203, DSR=0.5032 (FAIL)
+  T= 36mo, M= 10: SR=0.203, DSR=0.3811 (FAIL)
+  T= 36mo, M= 20: SR=0.203, DSR=0.2851 (FAIL)
+  T= 36mo, M= 50: SR=0.203, DSR=0.1913 (FAIL)
+  T= 60mo, M=  1: SR=0.203, DSR=1.0000 (PASS)
+  T= 60mo, M=  5: SR=0.203, DSR=0.6388 (FAIL)
+  T= 60mo, M= 10: SR=0.203, DSR=0.4948 (FAIL)
+  T= 60mo, M= 20: SR=0.203, DSR=0.3716 (FAIL)
+  T= 60mo, M= 50: SR=0.203, DSR=0.2451 (FAIL)
+
+DSR surface (5T × 5M):
+T       6       12      24      36      60
+M                                         
+50  0.0452  0.0500  0.0969  0.1913  0.2451
+20  0.0895  0.1040  0.1776  0.2851  0.3716
+10  0.1489  0.1776  0.2746  0.3811  0.4948
+5   0.2464  0.2973  0.4139  0.5032  0.6388
+1   1.0000  1.0000  1.0000  1.0000  1.0000
+
+Crossover threshold (smallest M where DSR < 0.50):
+  T=  6mo → crossover at M=5 (DSR=0.2464)
+  T= 12mo → crossover at M=5 (DSR=0.2973)
+  T= 24mo → crossover at M=5 (DSR=0.4139)
+  T= 36mo → crossover at M=10 (DSR=0.3811)
+  T= 60mo → crossover at M=10 (DSR=0.4948)
+══ seminar/ex4_dsr_calibration ══════════════════════
+  fixed_net_sr_annual:  0.7040
+  monthly_sr:           0.2032
+  n_obs_total:          68
+  skew_full:            -0.2614
+  excess_kurt_full:     4.2317
+  dsr_t6_m50:           0.0452
+  dsr_t60_m1:           1.0000
+  dsr_t6_m1:            1.0000
+  dsr_t60_m50:          0.2451
+  all_cells_in_0_1:     True
+  monotone_in_M:        True
+  ── plot: ex4_dsr_calibration.png ──
+     type: 2D DSR surface heatmap (M×T grid)
+     grid_size: 5×5 (25 cells)
+     T_values: [6, 12, 24, 36, 60]
+     M_values: [1, 5, 10, 20, 50]
+     dsr_min: 0.0452
+     dsr_max: 1.0000
+     title: 'Deflated Sharpe Ratio Surface\nNet SR=0.704 | skew=-0.26 | excess kurt=4.23'
+✓ ex4_dsr_calibration: ALL PASSED
+
+--- d1_purged_kfold ---
+Running correctness test...
+CORRECTNESS_TEST: PASS
+  Fold count k=5: 5 (expected 5)
+  Fold count k=10: 10 (expected 10)
+  D1-6: ValueError correctly raised for all 3 invalid input cases
+
+Loading alpha predictions for IC comparison...
+  Predictions loaded: 68 OOS months, 174 tickers
+Computing fold-level ICs (k=10)...
+
+  WF  mean IC: 0.0203  (n_folds=10)
+  PKF mean IC: 0.0213  (n_folds=10)
+  Δ IC (WF - PKF): -0.0011
+  t-stat on difference: -0.030
+  ⚠ FLAG D1-3: PKF IC (0.0213) > WF IC (0.0203). On 1-month labels with monthly data, purging effect can be near-zero or reversed. This is expected per upstream agent notes — flagging but not failing.
+
+Generating split visualization plot (k=5, 260 weeks)...
+Generating IC comparison bar chart...
+
+══ hw/d1_purged_kfold ══════════════════════════════════
+  correctness_test_k5:   n_leaking=0, n_folds=5, passed=True
+  correctness_test_k10:  n_leaking=0, n_folds=10, passed=True
+  fold_count_k5:  5
+  fold_count_k10: 10
+  wf_mean_ic:      0.0203
+  purged_mean_ic:  0.0213
+  ic_delta_wf_minus_pkf: -0.0011
+  ic_tstat:        -0.0298
+  n_wf_folds:      10
+  n_purged_folds:  10
+  invalid_input_errors_raised: 3/3
+  ── plot: d1_purged_kfold_splits.png ──
+     type: horizontal timeline, train/test/purged/embargo zones
+     n_folds: 5
+     n_periods: 260 (weekly data)
+     freq: W-MON
+  ── plot: d1_ic_comparison.png ──
+     type: bar chart, WF vs. PurgedKFold mean IC with std bars
+     wf_mean: 0.0203
+     purged_mean: 0.0213
+✓ hw/d1_purged_kfold: ALL PASSED
+
+--- d2_tc_pipeline ---
+Loading data...
+  Weights shape: (68, 174)
+  Gross returns: 67 months (2019-05-31 to 2024-11-30)
+  Mean one-way monthly turnover: 139.9%
+  ⚠ HIGH TURNOVER: 139.9% one-way — TC drag ≈ 3.36%/year at 10 bps
+
+Running correctness check...
+  Correctness check: PASS
+    2-asset [1,0]→[0,1]: turnover=1.0000 (expected 1.0), spread_cost=0.00200000 (expected 0.00200000)
+
+Running three-regime TC pipeline...
+  Running TC model [optimistic]...
+  Running TC model [base]...
+  Running TC model [pessimistic]...
+  TC Report [optimistic]
+    Mean one-way monthly turnover : 139.9%
+    ⚠ HIGH TURNOVER: 139.9% — TC drag is material
+    Annualized net return         : 15.56%
+    Annualized net Sharpe         : 0.777
+    Max drawdown (net)             : -32.88%
+    Mean monthly spread cost      : 0.000839
+    Mean monthly impact cost      : 0.000756
+    Top-5 highest-cost months:
+      2020-03-31: total=0.004269  dominant=impact
+      2020-04-30: total=0.003242  dominant=impact
+      2022-06-30: total=0.002293  dominant=impact
+      2022-10-31: total=0.002227  dominant=impact
+      2022-11-30: total=0.002202  dominant=impact
+  TC Report [base]
+    Mean one-way monthly turnover : 139.9%
+    ⚠ HIGH TURNOVER: 139.9% — TC drag is material
+    Annualized net return         : 13.53%
+    Annualized net Sharpe         : 0.676
+    Max drawdown (net)             : -33.95%
+    Mean monthly spread cost      : 0.002532
+    Mean monthly impact cost      : 0.000756
+    Top-5 highest-cost months:
+      2020-03-31: total=0.006128  dominant=impact
+      2020-04-30: total=0.004901  dominant=spread
+      2022-06-30: total=0.004497  dominant=spread
+      2022-10-31: total=0.004379  dominant=spread
+      2022-08-31: total=0.004233  dominant=spread
+  TC Report [pessimistic]
+    Mean one-way monthly turnover : 139.9%
+    ⚠ HIGH TURNOVER: 139.9% — TC drag is material
+    Annualized net return         : 8.17%
+    Annualized net Sharpe         : 0.409
+    Max drawdown (net)             : -37.05%
+    Mean monthly spread cost      : 0.006994
+    Mean monthly impact cost      : 0.000756
+    Top-5 highest-cost months:
+      2020-03-31: total=0.010481  dominant=spread
+      2022-06-30: total=0.010317  dominant=spread
+      2022-07-31: total=0.010315  dominant=spread
+      2022-10-31: total=0.009992  dominant=spread
+      2022-11-30: total=0.009963  dominant=spread
+
+Running assertions...
+
+══ hw/d2_tc_pipeline ════════════════════════════════
+  correctness_check: PASS
+  turnover_mean_monthly: 1.3987  (139.9%)
+  GROSS_SHARPE: 0.8713
+  NET_SHARPE_OPT: 0.7775
+  NET_SHARPE_BASE: 0.6763
+  NET_SHARPE_PESS: 0.4086
+  mdd_gross: -0.3188
+  mdd_base_net: -0.3395
+  gross_skewness: -0.2607
+  gross_excess_kurtosis: 4.1260
+  net_base_skewness: -0.2741
+  net_base_excess_kurtosis: 4.0530
+  n_months: 67
+  spread_regimes: optimistic=3bps, base=5/15bps_tiered, pessimistic=25bps
+  ── plot: d2_equity_curves.png ──
+     type: multi-line cumulative returns (gross + 3 net regimes)
+     n_lines: 4
+     y_range: [1.01, 2.42]
+     title: Gross vs. Net Equity Curves — Three Spread Regimes
+  ── plot: d2_tc_decomposition.png ──
+     type: stacked area (spread + impact per month)
+     n_months: 67
+     title: TC Decomposition Over Time — Base
+  ── plot: d2_top5_cost_months.png ──
+     type: horizontal bar chart (top-5 cost months)
+     title: Top-5 Highest-Cost Months — Base
+✓ d2_tc_pipeline: ALL PASSED
+
+--- d3_responsible_report ---
+Data loaded:
+  Net returns (base): 67 months, 2019-05-31 to 2024-11-30
+  GBM IC series: 68 months, mean IC = 0.0460
+  NN predictions available: True
+  Expanded features available: True
+
+── Layer 1: Performance Metrics ────────────────────────────
+  Gross (naive):
+    Sharpe=0.871, Sortino=1.132, Calmar=0.594
+    CAGR=18.94%, MaxDD=-31.88%
+    Skewness=-0.261, ExcessKurt=4.126
+  Net base (purged):
+    Sharpe=0.676, Sortino=0.887, Calmar=0.424
+    CAGR=14.40%, MaxDD=-33.95%
+    Skewness=-0.274, ExcessKurt=4.053
+  quantstats HTML tearsheet saved → /Users/dasmal/finance_stuff/course/week05_backtesting_txcosts/code/logs/plots/d3_quantstats_tearsheet.html
+
+── Layer 1: DSR at M=10 ─────────────────────────
+  Monthly SR: 0.1952
+  DSR (M=10, T=67): 0.5043  → DEPLOY
+  Skewness: -0.2741, ExcessKurt: 4.0530
+
+── Layer 2: Computing Ridge walk-forward predictions ────────
+  [Ridge] fold 1/93: 2017-03
+  [Ridge] fold 13/93: 2018-03
+  [Ridge] fold 25/93: 2019-03
+  [Ridge] fold 37/93: 2020-03
+  [Ridge] fold 49/93: 2021-03
+  [Ridge] fold 61/93: 2022-03
+  [Ridge] fold 73/93: 2023-03
+  [Ridge] fold 85/93: 2024-03
+  Ridge predictions: 16182 samples across 93 dates
+
+  GBM IC: mean=0.0259, t=1.38
+  NN IC: mean=0.0240, t=1.02
+  Ridge IC: mean=0.0092, t=0.52
+
+── Layer 2: CPCV PBO across 3 models ─────────────
+  PBO = 0.2667 (26.7% of paths where IS winner is OOS loser)
+  N CPCV paths: 15
+
+── Layer 2: BHY Multiple-Testing Correction ─────────────────
+  GBM: t=1.377, p_raw=0.1731, p_BHY=0.4672
+  NN: t=1.020, p_raw=0.3115, p_BHY=0.4672
+  Ridge: t=0.521, p_raw=0.6034, p_BHY=0.6034
+
+── Layer 2: Winning Model Selection ─────────────────────────
+  Winning model: GBM (best IC (no model cleared BHY threshold))
+  IC: 0.0259, t-stat: 1.377
+  PBO: 0.2667, DSR@M=10: 0.5043 → DEPLOY
+
+  Model Comparison Table:
+       Mean IC  t-stat   p_raw   p_BHY Selected
+Model                                          
+GBM     0.0259   1.377  0.1731  0.4672      YES
+NN      0.0240   1.020  0.3115  0.4672         
+Ridge   0.0092   0.521  0.6034  0.6034         
+
+── Layer 3: Minimum Track Record Length ─────────────────────
+  Net Sharpe (annualized): 0.6763
+  Skewness: -0.2741, ExcessKurt: 4.0530
+  MINTRL_95pct=77.5 months
+  Observed track record: 67 months
+  Track record sufficient for 95% confidence: NO
+
+── Layer 3: Capital Allocation Discussion ────────────────────
+  [1] Strategy viability at scale: The base-regime net Sharpe of 0.68 is computed assuming a tiered spread model (5/15 bps for large/mid-small cap), but market impact grows with AUM via the sqrt-law: doubling capital raises impact costs by ~41%. At moderate AUM (< $200M), this strategy may remain viable; beyond $500M the impact drag likely erodes the edge entirely.
+  [2] Position sizing discipline: Kelly criterion suggests fractional sizing: f* = SR / SR_max, where SR_max ≈ SR + σ_SR. With net SR=0.68 and observed MaxDD=-34.0%, a half-Kelly allocation limits ruin probability while preserving compounding. Do NOT run at full Kelly on a strategy with PBO > 0.20.
+  [3] Deployment decision framework: The strategy clears a Sharpe > 0.5 threshold net of realistic costs, but the MinTRL (78 months at 95% confidence) compared to observed track record (67 months) governs the deployment decision. A paper-trading period of 12 months before live allocation is recommended to confirm out-of-sample performance persistence and refine cost assumptions with actual fill data.
+
+══ hw/d3_responsible_report ══════════════════════════════
+  layer1_net_sharpe: 0.6763
+  layer1_gross_sharpe: 0.8713
+  layer1_net_max_dd: -0.3395
+  layer1_net_cagr: 0.1440
+  layer1_net_sortino: 0.8872
+  layer1_net_calmar: 0.4241
+  layer1_net_skewness: -0.2741
+  layer1_net_excess_kurtosis: 4.0530
+  layer1_dsr_m10: 0.5043
+  layer1_deploy_verdict: DEPLOY
+  layer2_n_models: 3
+  layer2_pbo: 0.2667
+  layer2_n_cpcv_paths: 15
+  layer2_winning_model: GBM
+  layer2_winner_mean_ic: 0.0259
+  layer2_winner_t_stat: 1.3770
+  layer3_mintrl_95pct: 77.53
+  layer3_observed_months: 67
+  layer3_track_record_sufficient: False
+  quantstats_available: True
+  quantstats_html: /Users/dasmal/finance_stuff/course/week05_backtesting_txcosts/code/logs/plots/d3_quantstats_tearsheet.html
+  ── plot: d3_tearsheet.png ──
+     type: 4-panel tear sheet (cumulative, distribution, drawdown, monthly heatmap)
+     n_panels: 4
+     title: Layer 1 Tear Sheet — Net Returns (Base Regime) [quantstats]
+  ── plot: d3_equity_curve.png ──
+     type: gross vs net equity curve (full OOS period)
+     y_range: [1.08, 2.36]
+  ── plot: d3_pbo_distribution.png ──
+     type: histogram of IS-winner OOS ranks across 15 CPCV paths
+     pbo: 0.2667
+✓ d3_responsible_report: ALL PASSED
+
