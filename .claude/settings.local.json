@@ -7,7 +7,10 @@
       "NotebookEdit",
       "WebFetch",
       "WebSearch",
-      "Glob"
+      "Glob",
+      "Bash(jupyter nbconvert:*)",
+      "Bash(/Users/dasmal/finance_stuff/.venv/bin/jupyter nbconvert:*)",
+      "Bash(/Users/dasmal/finance_stuff/.venv/bin/python:*)"
     ]
   }
 }

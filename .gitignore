@@ -14,6 +14,10 @@ course/shared/.data_cache/
 course/week*/code/.cache/
 legacy/old_pipeline_weeks/*/code/.cache/
 
+# Generated data artifacts from notebook execution
+course/week*/_benchmark/
+course/week*/*.parquet
+
 # Logs from code execution (Step 4B)
 course/week*/code/logs/
 
