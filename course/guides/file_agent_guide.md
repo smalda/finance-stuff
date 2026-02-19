@@ -61,6 +61,21 @@ The implementation is divided into cells using `# ── CELL:` markers. **Read 
 
 **Backend note:** Set a non-interactive matplotlib backend (e.g., `matplotlib.use("Agg")`) in each file's import section, before any CELL markers. This prevents `plt.show()` from blocking during script execution. Notebook agents skip this line when consolidating imports.
 
+**Threading note (macOS deadlock prevention):** When a file uses both LightGBM (or any OpenMP library) and PyTorch, a threading deadlock can occur on macOS because both libraries ship conflicting OpenMP runtimes. The fix — `os.environ["OMP_NUM_THREADS"] = "1"` and `torch.set_num_threads(1)` — must go **inside the first CELL block**, not in the pre-CELL import section. Unlike `matplotlib.use("Agg")` (which notebooks don't need), notebooks DO need the threading fix to execute without hanging. Place the env var lines before any imports that trigger OpenMP loading (NumPy, LightGBM, sklearn), and `torch.set_num_threads(1)` immediately after `import torch`:
+
+```python
+# ── CELL: setup ──────────────────────────────────────────
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+
+import numpy as np
+import lightgbm as lgb
+import torch
+torch.set_num_threads(1)
+# ... remaining imports
+```
+
 **`plt.show()` in cell code is intentional.** It appears inside CELL-marked sections (which get extracted into notebooks) so that notebooks display plots inline. With the Agg backend, `plt.show()` is a no-op during script execution — harmless. The actual plot saving happens in the verification block via `fig.savefig()`.
 
 ### Debug Run First, Full Run Second

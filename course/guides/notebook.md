@@ -87,7 +87,7 @@ Four sources govern different aspects of your notebook:
    - Write a **code cell** — the code between two consecutive CELL markers, **verbatim**
    - Write a **markdown cell after** — interpretation using the brief's key numbers and framing
 
-3. **Skip entirely:** the `# ── CELL:` marker lines themselves, `matplotlib.use("Agg")`, and the entire `if __name__ == "__main__":` block. Keep `sys.path` and `from data_setup import` lines — they go in the notebook's setup cell.
+3. **Skip entirely:** the `# ── CELL:` marker lines themselves, `matplotlib.use("Agg")`, and the entire `if __name__ == "__main__":` block. Keep `sys.path` and `from data_setup import` lines — they go in the notebook's setup cell. **Keep threading env vars** (`os.environ["OMP_NUM_THREADS"]`, `os.environ["MKL_NUM_THREADS"]`, `torch.set_num_threads(1)`) — these prevent a macOS OpenMP/LibTorch deadlock when LightGBM and PyTorch coexist, and notebooks need them just as much as scripts do.
 
 4. **Add structure.** Opening hook (from blueprint), section headers, transitions between sections, closing, career connections, bridge to next week.
 
